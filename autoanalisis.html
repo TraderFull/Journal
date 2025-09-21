@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CompuZetta Top-Down EUR/USD</title>
+    <title>CompuZetta Enhanced Top-Down EUR/USD</title>
     <style>
         * {
             margin: 0;
@@ -13,287 +13,464 @@
 
         body {
             font-family: 'Arial', sans-serif;
-            background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 50%, #16213e 100%);
+            background: linear-gradient(135deg, #0a0a1a 0%, #1a1a2e 50%, #16213e 100%);
             min-height: 100vh;
             color: #fff;
             padding: 20px;
         }
 
         .container {
-            max-width: 1600px;
+            max-width: 1800px;
             margin: 0 auto;
             background: rgba(255, 255, 255, 0.03);
             backdrop-filter: blur(15px);
-            border-radius: 20px;
+            border-radius: 25px;
             padding: 30px;
-            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.4);
+            box-shadow: 0 30px 70px rgba(0, 0, 0, 0.5);
             border: 1px solid rgba(255, 255, 255, 0.1);
         }
 
         h1 {
             text-align: center;
             margin-bottom: 20px;
-            font-size: 2.5rem;
-            background: linear-gradient(45deg, #00d4ff, #00ff88, #ffd700);
+            font-size: 3rem;
+            background: linear-gradient(45deg, #00d4ff, #00ff88, #ffd700, #ff6b6b);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
-            text-shadow: 0 0 30px rgba(0, 212, 255, 0.3);
+            background-size: 300% 100%;
+            animation: gradientShift 8s ease infinite;
+            text-shadow: 0 0 40px rgba(0, 212, 255, 0.4);
+        }
+
+        @keyframes gradientShift {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
         }
 
         .strategy-header {
-            background: linear-gradient(135deg, rgba(0, 212, 255, 0.1), rgba(0, 255, 136, 0.1));
-            border-radius: 15px;
-            padding: 20px;
+            background: linear-gradient(135deg, rgba(0, 212, 255, 0.15), rgba(0, 255, 136, 0.15));
+            border-radius: 20px;
+            padding: 25px;
             margin-bottom: 30px;
-            border-left: 5px solid #00d4ff;
+            border-left: 8px solid #00d4ff;
+            position: relative;
+            overflow: hidden;
         }
 
-        .timeframe-selector {
-            display: flex;
-            justify-content: center;
+        .strategy-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(45deg, transparent, rgba(255,255,255,0.05), transparent);
+            transform: translateX(-100%);
+            animation: shimmer 3s infinite;
+        }
+
+        @keyframes shimmer {
+            100% { transform: translateX(100%); }
+        }
+
+        .enhanced-timeframe-selector {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
             gap: 15px;
             margin-bottom: 30px;
-            flex-wrap: wrap;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
         }
 
         .timeframe-btn {
-            background: linear-gradient(45deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
+            background: linear-gradient(145deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
             border: 2px solid rgba(255, 255, 255, 0.2);
-            padding: 12px 25px;
-            border-radius: 25px;
+            padding: 15px 20px;
+            border-radius: 12px;
             color: #fff;
             cursor: pointer;
-            transition: all 0.3s ease;
+            transition: all 0.4s ease;
             font-weight: bold;
-            font-size: 1rem;
+            font-size: 0.9rem;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .timeframe-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .timeframe-btn:hover::before {
+            left: 100%;
         }
 
         .timeframe-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(0, 212, 255, 0.2);
+            transform: translateY(-3px);
+            box-shadow: 0 15px 30px rgba(0, 212, 255, 0.3);
             border-color: #00d4ff;
+            background: linear-gradient(145deg, rgba(0, 212, 255, 0.2), rgba(0, 255, 136, 0.2));
         }
 
         .timeframe-btn.active {
             background: linear-gradient(45deg, #00d4ff, #00ff88);
             color: #000;
             border-color: #00d4ff;
+            box-shadow: 0 8px 25px rgba(0, 212, 255, 0.4);
+        }
+
+        .timeframe-btn.completed {
+            background: linear-gradient(45deg, #00ff88, #32ff7e);
+            border-color: #00ff88;
+        }
+
+        .multiple-setups-panel {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .setup-detector {
+            background: linear-gradient(135deg, rgba(255, 215, 0, 0.1), rgba(255, 165, 0, 0.1));
+            border-radius: 20px;
+            padding: 25px;
+            border-left: 6px solid #ffd700;
+            position: relative;
+        }
+
+        .setup-zone {
+            background: linear-gradient(135deg, rgba(0, 212, 255, 0.1), rgba(0, 255, 136, 0.1));
+            border-radius: 20px;
+            padding: 25px;
+            border-left: 6px solid #00d4ff;
+        }
+
+        .setup-primary {
+            background: linear-gradient(135deg, rgba(255, 107, 107, 0.15), rgba(238, 90, 36, 0.15));
+            border: 2px solid rgba(255, 107, 107, 0.3);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        .setup-secondary {
+            background: linear-gradient(135deg, rgba(0, 255, 136, 0.1), rgba(0, 212, 255, 0.1));
+            border: 2px solid rgba(0, 255, 136, 0.3);
+            border-radius: 15px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+
+        .setup-scalp {
+            background: linear-gradient(135deg, rgba(255, 215, 0, 0.1), rgba(255, 193, 7, 0.1));
+            border: 1px solid rgba(255, 215, 0, 0.3);
+            border-radius: 10px;
+            padding: 12px;
+            margin-bottom: 10px;
+            font-size: 0.9rem;
+        }
+
+        .confluence-panel {
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 20px;
+            padding: 25px;
+            margin-bottom: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .confluence-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .confluence-item {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.04));
+            border-radius: 12px;
+            padding: 15px;
+            border-left: 4px solid #00d4ff;
+            position: relative;
+        }
+
+        .confluence-weight {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(0, 212, 255, 0.2);
+            color: #00d4ff;
+            padding: 4px 8px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+
+        .confidence-meter {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 25px;
+            padding: 15px;
+            margin: 20px 0;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .confidence-bar {
+            height: 20px;
+            border-radius: 10px;
+            background: linear-gradient(90deg, #ff6b6b 0%, #feca57 50%, #00ff88 100%);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .confidence-indicator {
+            position: absolute;
+            top: -5px;
+            height: 30px;
+            width: 4px;
+            background: #fff;
+            border-radius: 2px;
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
+            transition: left 0.5s ease;
+        }
+
+        .timeline-panel {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.02));
+            border-radius: 20px;
+            padding: 25px;
+            margin-bottom: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .timeline-section {
+            margin-bottom: 25px;
+            padding: 20px;
+            border-radius: 15px;
+            border-left: 5px solid;
+        }
+
+        .timeline-immediate {
+            background: rgba(255, 193, 7, 0.1);
+            border-left-color: #ffc107;
+        }
+
+        .timeline-short {
+            background: rgba(0, 212, 255, 0.1);
+            border-left-color: #00d4ff;
+        }
+
+        .timeline-macro {
+            background: rgba(255, 107, 107, 0.1);
+            border-left-color: #ff6b6b;
+        }
+
+        .smart-context {
+            background: linear-gradient(135deg, rgba(138, 43, 226, 0.1), rgba(75, 0, 130, 0.1));
+            border-radius: 20px;
+            padding: 25px;
+            margin-bottom: 30px;
+            border-left: 6px solid #8a2be2;
+            position: relative;
+        }
+
+        .alert-system {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .alert-item {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            padding: 20px;
+            border-top: 4px solid;
+            position: relative;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .alert-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .alert-yellow { border-top-color: #ffc107; }
+        .alert-orange { border-top-color: #ff9500; }
+        .alert-red { border-top-color: #ff6b6b; }
+
+        .enhanced-export {
+            background: linear-gradient(135deg, rgba(0, 255, 136, 0.15), rgba(0, 212, 255, 0.15));
+            border-radius: 25px;
+            padding: 30px;
+            margin-top: 30px;
+            border: 2px solid rgba(0, 255, 136, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .enhanced-export::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(45deg, transparent, rgba(255,255,255,0.1), transparent);
+            transform: translateX(-100%);
+            animation: exportShimmer 4s infinite;
+        }
+
+        @keyframes exportShimmer {
+            100% { transform: translateX(100%); }
+        }
+
+        .export-section {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .setup-card {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 15px;
+            border-left: 5px solid;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+
+        .setup-card:hover {
+            transform: translateX(5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+        }
+
+        .setup-macro { border-left-color: #ff6b6b; }
+        .setup-immediate { border-left-color: #00d4ff; }
+        .setup-alternative { border-left-color: #ffd700; }
+
+        .export-button {
+            background: linear-gradient(45deg, #00ff88, #00d4ff);
+            border: none;
+            padding: 20px 40px;
+            border-radius: 30px;
+            color: #000;
+            font-weight: bold;
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: all 0.4s ease;
+            box-shadow: 0 10px 30px rgba(0, 255, 136, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .export-button::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            transition: all 0.3s ease;
+        }
+
+        .export-button:hover::before {
+            width: 300px;
+            height: 300px;
+        }
+
+        .export-button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 20px 50px rgba(0, 255, 136, 0.5);
         }
 
         .upload-section {
             background: rgba(255, 255, 255, 0.05);
-            border-radius: 15px;
-            padding: 25px;
+            border-radius: 20px;
+            padding: 30px;
             margin-bottom: 30px;
-            border: 2px dashed rgba(255, 255, 255, 0.2);
+            border: 3px dashed rgba(255, 255, 255, 0.3);
             text-align: center;
-            transition: all 0.3s ease;
+            transition: all 0.4s ease;
+            position: relative;
         }
 
         .upload-section:hover {
             border-color: #00d4ff;
-            box-shadow: 0 0 25px rgba(0, 212, 255, 0.15);
-        }
-
-        .file-input {
-            display: none;
+            box-shadow: 0 0 40px rgba(0, 212, 255, 0.2);
+            transform: scale(1.02);
         }
 
         .upload-btn {
             background: linear-gradient(45deg, #00d4ff, #00ff88);
             border: none;
-            padding: 15px 30px;
-            border-radius: 50px;
+            padding: 18px 35px;
+            border-radius: 25px;
             color: #000;
             font-weight: bold;
             cursor: pointer;
-            transition: transform 0.3s ease;
+            transition: all 0.3s ease;
             font-size: 1.1rem;
-            box-shadow: 0 5px 15px rgba(0, 212, 255, 0.3);
+            box-shadow: 0 8px 25px rgba(0, 212, 255, 0.3);
         }
 
         .upload-btn:hover {
             transform: translateY(-3px);
-            box-shadow: 0 15px 30px rgba(0, 212, 255, 0.4);
+            box-shadow: 0 15px 40px rgba(0, 212, 255, 0.4);
         }
 
-        .analysis-flow {
+        .analysis-grid {
             display: grid;
+            grid-template-columns: 1fr 1fr;
             gap: 30px;
             margin-bottom: 30px;
         }
 
-        .timeframe-analysis {
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 15px;
+        .chart-analysis {
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 20px;
             padding: 25px;
-            border-left: 5px solid #ffd700;
-            position: relative;
-            opacity: 0.3;
-            transition: all 0.5s ease;
-        }
-
-        .timeframe-analysis.active {
-            opacity: 1;
-            border-left-color: #00d4ff;
-            box-shadow: 0 10px 30px rgba(0, 212, 255, 0.1);
-        }
-
-        .timeframe-analysis.completed {
-            border-left-color: #00ff88;
-            background: rgba(0, 255, 136, 0.05);
-        }
-
-        .timeframe-header {
-            display: flex;
-            justify-content: between;
-            align-items: center;
-            margin-bottom: 20px;
-        }
-
-        .timeframe-title {
-            font-size: 1.5rem;
-            font-weight: bold;
-            color: #00d4ff;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .status-indicator {
-            width: 12px;
-            height: 12px;
-            border-radius: 50%;
-            background: #666;
-            margin-left: auto;
-        }
-
-        .status-indicator.pending { background: #ffd700; }
-        .status-indicator.analyzing { background: #00d4ff; animation: pulse 1.5s infinite; }
-        .status-indicator.completed { background: #00ff88; }
-
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.3; }
-        }
-
-        .chart-container {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 25px;
-            margin-bottom: 25px;
-        }
-
-        .chart-image-container {
-            position: relative;
+            border: 1px solid rgba(255, 255, 255, 0.1);
         }
 
         .chart-image {
             width: 100%;
-            border-radius: 10px;
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
-            border: 2px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .analysis-panel {
-            background: rgba(255, 255, 255, 0.03);
-            border-radius: 10px;
-            padding: 20px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .structure-analysis {
-            margin-bottom: 20px;
-        }
-
-        .structure-badge {
-            display: inline-block;
-            padding: 8px 16px;
-            border-radius: 20px;
-            font-weight: bold;
-            margin: 5px 5px 5px 0;
-            font-size: 0.9rem;
-        }
-
-        .bullish { background: linear-gradient(45deg, #00ff88, #00d4ff); color: #000; }
-        .bearish { background: linear-gradient(45deg, #ff6b6b, #ee5a24); color: #fff; }
-        .neutral { background: linear-gradient(45deg, #feca57, #ff9ff3); color: #000; }
-
-        .key-levels {
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 8px;
-            padding: 15px;
-            margin: 15px 0;
-        }
-
-        .decision-panel {
-            background: linear-gradient(135deg, rgba(0, 212, 255, 0.1), rgba(0, 255, 136, 0.1));
             border-radius: 15px;
-            padding: 25px;
-            margin-top: 20px;
-            border: 2px solid rgba(0, 212, 255, 0.3);
-        }
-
-        .next-step {
-            background: rgba(255, 215, 0, 0.1);
-            border-radius: 10px;
-            padding: 20px;
-            margin-top: 20px;
-            border-left: 5px solid #ffd700;
-        }
-
-        .action-buttons {
-            display: flex;
-            gap: 15px;
-            margin-top: 20px;
-            justify-content: center;
-            flex-wrap: wrap;
-        }
-
-        .action-btn {
-            padding: 12px 25px;
-            border: none;
-            border-radius: 25px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            font-size: 1rem;
-        }
-
-        .confirm-btn {
-            background: linear-gradient(45deg, #00ff88, #00d4ff);
-            color: #000;
-        }
-
-        .reject-btn {
-            background: linear-gradient(45deg, #ff6b6b, #ee5a24);
-            color: #fff;
-        }
-
-        .wait-btn {
-            background: linear-gradient(45deg, #feca57, #ff9ff3);
-            color: #000;
-        }
-
-        .action-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            margin-bottom: 20px;
         }
 
         .loading {
             text-align: center;
-            padding: 20px;
+            padding: 30px;
             color: #00d4ff;
         }
 
         .spinner {
-            border: 3px solid rgba(255, 255, 255, 0.2);
+            border: 4px solid rgba(255, 255, 255, 0.2);
             border-radius: 50%;
-            border-top: 3px solid #00d4ff;
-            width: 40px;
-            height: 40px;
-            animation: spin 1s linear infinite;
-            margin: 0 auto 15px;
+            border-top: 4px solid #00d4ff;
+            width: 50px;
+            height: 50px;
+            animation: spin 1.2s linear infinite;
+            margin: 0 auto 20px;
         }
 
         @keyframes spin {
@@ -301,243 +478,378 @@
             100% { transform: rotate(360deg); }
         }
 
-        .ritual-checklist {
+        .price-tag {
+            background: linear-gradient(45deg, #ffd700, #ffed4e);
+            color: #000;
+            padding: 4px 8px;
+            border-radius: 5px;
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+
+        .time-tag {
+            background: linear-gradient(45deg, #00d4ff, #0fbcf9);
+            color: #000;
+            padding: 4px 8px;
+            border-radius: 5px;
+            font-weight: bold;
+            font-size: 0.8rem;
+        }
+
+        .risk-tag {
+            padding: 4px 8px;
+            border-radius: 5px;
+            font-weight: bold;
+            font-size: 0.8rem;
+        }
+
+        .risk-low { background: #00ff88; color: #000; }
+        .risk-medium { background: #ffc107; color: #000; }
+        .risk-high { background: #ff6b6b; color: #fff; }
+
+        .hidden { display: none; }
+
+        .fade-in {
+            animation: fadeIn 0.8s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .progress-section {
             background: rgba(255, 255, 255, 0.03);
             border-radius: 15px;
-            padding: 25px;
+            padding: 20px;
             margin-bottom: 30px;
-            border-left: 5px solid #ffd700;
+            border: 1px solid rgba(255, 255, 255, 0.1);
         }
 
-        .checklist-item {
-            display: flex;
-            align-items: center;
-            padding: 10px 0;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .checklist-item:last-child {
-            border-bottom: none;
-        }
-
-        .checkbox {
-            width: 20px;
-            height: 20px;
-            border-radius: 3px;
-            border: 2px solid #00d4ff;
-            margin-right: 15px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .checkbox.checked {
-            background: #00d4ff;
-        }
-
-        .no-charts {
-            text-align: center;
-            padding: 60px 20px;
-            color: rgba(255, 255, 255, 0.6);
-            font-size: 1.2rem;
-        }
-
-        .workflow-progress {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 20px;
-            margin: 30px 0;
-            flex-wrap: wrap;
-        }
-
-        .progress-step {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            opacity: 0.3;
-            transition: all 0.5s ease;
-        }
-
-        .progress-step.active {
-            opacity: 1;
-            transform: scale(1.1);
-        }
-
-        .progress-step.completed {
-            opacity: 1;
-            color: #00ff88;
-        }
-
-        .step-circle {
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
+        .progress-bar {
             background: rgba(255, 255, 255, 0.1);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-            margin-bottom: 10px;
-            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            height: 20px;
+            overflow: hidden;
+            margin-bottom: 15px;
         }
 
-        .progress-step.active .step-circle {
-            background: linear-gradient(45deg, #00d4ff, #00ff88);
-            color: #000;
-            border-color: #00d4ff;
-        }
-
-        .progress-step.completed .step-circle {
-            background: #00ff88;
-            color: #000;
-        }
-
-        .connector {
-            width: 40px;
-            height: 2px;
-            background: rgba(255, 255, 255, 0.2);
-            margin: 0 10px;
-        }
-
-        .connector.active {
+        .progress-fill {
             background: linear-gradient(90deg, #00d4ff, #00ff88);
+            height: 100%;
+            border-radius: 10px;
+            transition: width 1s ease;
+            position: relative;
+        }
+
+        .progress-fill::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            right: 0;
+            background-image: linear-gradient(
+                -45deg,
+                rgba(255, 255, 255, .2) 25%,
+                transparent 25%,
+                transparent 50%,
+                rgba(255, 255, 255, .2) 50%,
+                rgba(255, 255, 255, .2) 75%,
+                transparent 75%,
+                transparent
+            );
+            background-size: 50px 50px;
+            animation: move 2s linear infinite;
+        }
+
+        @keyframes move {
+            0% { background-position: 0 0; }
+            100% { background-position: 50px 50px; }
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 15px;
+            }
+            
+            h1 {
+                font-size: 2rem;
+            }
+            
+            .multiple-setups-panel {
+                grid-template-columns: 1fr;
+            }
+            
+            .analysis-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .confluence-grid {
+                grid-template-columns: 1fr;
+            }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>🎯 CompuZetta Top-Down EUR/USD</h1>
+        <h1>🚀 CompuZetta Enhanced Top-Down EUR/USD</h1>
         
         <div class="strategy-header">
-            <h2 style="color: #00d4ff; margin-bottom: 15px;">📋 Tu Estrategia: Macro → Micro</h2>
-            <p><strong>MN:</strong> Dirección macro | <strong>W1:</strong> Impulso/Retroceso | <strong>D1/H4:</strong> Timing de entrada</p>
+            <h2 style="color: #00d4ff; margin-bottom: 15px;">🎯 Estrategia Multi-Setup Avanzada</h2>
+            <p><strong>12M → 6M → 3M → MN → W1 → D1 → H4</strong> | Detecta múltiples oportunidades en cada recorrido</p>
+            <p style="margin-top: 10px; font-size: 0.9rem; opacity: 0.8;">
+                Sistema inteligente que encuentra TODOS los setups disponibles: desde scalps inmediatos hasta objetivos macro
+            </p>
         </div>
 
-        <!-- Ritual Pre-Sesión -->
-        <div class="ritual-checklist">
-            <h3 style="color: #ffd700; margin-bottom: 20px;">🌅 Ritual Pre-Sesión (15 min)</h3>
-            <div class="checklist-item">
-                <div class="checkbox" onclick="toggleCheck(this)"></div>
-                <span><strong>Mapa Macro (5 min):</strong> Revisar MN → W1 → D1 estructura</span>
+        <!-- Progress Section -->
+        <div class="progress-section">
+            <h3 style="color: #ffd700; margin-bottom: 15px;">📊 Progreso del Análisis</h3>
+            <div class="progress-bar">
+                <div class="progress-fill" id="overallProgress" style="width: 0%"></div>
             </div>
-            <div class="checklist-item">
-                <div class="checkbox" onclick="toggleCheck(this)"></div>
-                <span><strong>Plan de Juego (5 min):</strong> Definir escenarios A y B en H4/H1</span>
-            </div>
-            <div class="checklist-item">
-                <div class="checkbox" onclick="toggleCheck(this)"></div>
-                <span><strong>Filtro de Entrada (5 min):</strong> Solo entrar si precio está en zona planificada</span>
+            <div style="text-align: center; color: #00d4ff;">
+                <span id="progressText">0/7 Temporalidades Completadas</span>
             </div>
         </div>
 
-        <!-- Workflow Progress -->
-        <div class="workflow-progress">
-            <div class="progress-step active" id="step-MN">
-                <div class="step-circle">MN</div>
-                <span>Macro Trend</span>
-            </div>
-            <div class="connector" id="connector-1"></div>
-            <div class="progress-step" id="step-W1">
-                <div class="step-circle">W1</div>
-                <span>Impulso/Retroceso</span>
-            </div>
-            <div class="connector" id="connector-2"></div>
-            <div class="progress-step" id="step-D1">
-                <div class="step-circle">D1</div>
-                <span>Confirmación</span>
-            </div>
-            <div class="connector" id="connector-3"></div>
-            <div class="progress-step" id="step-H4">
-                <div class="step-circle">H4</div>
-                <span>Ejecución</span>
-            </div>
-        </div>
-
-        <!-- Timeframe Selector -->
-        <div class="timeframe-selector">
-            <button class="timeframe-btn active" onclick="selectTimeframe('MN')" id="btn-MN">📊 MN - Macro</button>
-            <button class="timeframe-btn" onclick="selectTimeframe('W1')" id="btn-W1">📈 W1 - Semanal</button>
-            <button class="timeframe-btn" onclick="selectTimeframe('D1')" id="btn-D1">📋 D1 - Diario</button>
-            <button class="timeframe-btn" onclick="selectTimeframe('H4')" id="btn-H4">⚡ H4 - Ejecución</button>
+        <!-- Enhanced Timeframe Selector -->
+        <div class="enhanced-timeframe-selector">
+            <button class="timeframe-btn active" onclick="selectTimeframe('12M')" id="btn-12M">
+                📈 12M<br><small>Macro Súper</small>
+            </button>
+            <button class="timeframe-btn" onclick="selectTimeframe('6M')" id="btn-6M">
+                📊 6M<br><small>Macro Extendida</small>
+            </button>
+            <button class="timeframe-btn" onclick="selectTimeframe('3M')" id="btn-3M">
+                📋 3M<br><small>Macro Intermedia</small>
+            </button>
+            <button class="timeframe-btn" onclick="selectTimeframe('MN')" id="btn-MN">
+                🗓️ MN<br><small>Mensual</small>
+            </button>
+            <button class="timeframe-btn" onclick="selectTimeframe('W1')" id="btn-W1">
+                📅 W1<br><small>Semanal</small>
+            </button>
+            <button class="timeframe-btn" onclick="selectTimeframe('D1')" id="btn-D1">
+                📆 D1<br><small>Diario</small>
+            </button>
+            <button class="timeframe-btn" onclick="selectTimeframe('H4')" id="btn-H4">
+                ⚡ H4<br><small>Ejecución</small>
+            </button>
         </div>
 
         <!-- Upload Section -->
         <div class="upload-section">
-            <h3 id="upload-title">📊 Sube tu gráfico MENSUAL (MN)</h3>
-            <p style="margin: 15px 0; opacity: 0.8;" id="upload-desc">Comenzamos con el análisis macro para establecer la dirección de largo plazo</p>
-            <input type="file" class="file-input" id="fileInput" accept="image/*">
+            <h3 id="upload-title">📊 Sube tu gráfico de 12M - Macro Súper Estructura</h3>
+            <p style="margin: 15px 0; opacity: 0.8;" id="upload-desc">
+                Comenzamos con el análisis de súper macro para detectar ciclos de años
+            </p>
+            <input type="file" class="file-input" id="fileInput" accept="image/*" style="display: none;">
             <button class="upload-btn" onclick="document.getElementById('fileInput').click()">
-                📁 <span id="upload-btn-text">Subir Gráfico MN</span>
+                📁 <span id="upload-btn-text">Subir Gráfico 12M</span>
             </button>
         </div>
 
-        <!-- Analysis Flow -->
-        <div class="analysis-flow" id="analysisFlow">
-            <!-- Dynamic content will be added here -->
+        <!-- Multiple Setups Panel -->
+        <div class="multiple-setups-panel hidden" id="setupsPanel">
+            <div class="setup-detector">
+                <h3 style="color: #ffd700; margin-bottom: 20px;">🎯 DETECTOR DE OPORTUNIDADES</h3>
+                <div id="setupsPrimary"></div>
+                <div id="setupsSecondary"></div>
+            </div>
+            
+            <div class="setup-zone">
+                <h3 style="color: #00d4ff; margin-bottom: 20px;">📍 ANÁLISIS DE ZONAS</h3>
+                <div id="reactionZones"></div>
+                <div id="arrivalTimes"></div>
+            </div>
         </div>
 
-        <!-- Decision Panel -->
-        <div class="decision-panel" id="decisionPanel" style="display: none;">
-            <h2 style="color: #00d4ff; margin-bottom: 20px;">🎯 Decisión Final</h2>
-            <div id="finalDecision"></div>
+        <!-- Confluence Panel -->
+        <div class="confluence-panel hidden" id="confluencePanel">
+            <h3 style="color: #00ff88; margin-bottom: 20px;">📊 MAPA DE CONFLUENCIAS PROGRESIVAS</h3>
+            <div class="confluence-grid" id="confluenceGrid"></div>
+            
+            <div class="confidence-meter">
+                <h4 style="color: #ffd700; margin-bottom: 15px;">💪 CONFIANZA TOTAL DEL SETUP</h4>
+                <div class="confidence-bar" id="confidenceBar">
+                    <div class="confidence-indicator" id="confidenceIndicator"></div>
+                </div>
+                <p style="margin-top: 10px; font-size: 1.2rem; font-weight: bold;" id="confidenceText">0%</p>
+            </div>
         </div>
 
-        <div id="noChartsMessage" class="no-charts">
-            <p>📊 Comienza tu análisis top-down</p>
-            <p style="font-size: 0.9rem; margin-top: 15px;">Sigue el ritual pre-sesión y sube tu primer gráfico MN para establecer la dirección macro</p>
+        <!-- Timeline Panel -->
+        <div class="timeline-panel hidden" id="timelinePanel">
+            <h3 style="color: #ff6b6b; margin-bottom: 25px;">📅 CRONOGRAMA DE SETUPS</h3>
+            
+            <div class="timeline-section timeline-immediate">
+                <h4 style="color: #ffc107; margin-bottom: 15px;">🔜 PRÓXIMAS 24H</h4>
+                <div id="immediate-setups"></div>
+            </div>
+            
+            <div class="timeline-section timeline-short">
+                <h4 style="color: #00d4ff; margin-bottom: 15px;">📊 PRÓXIMOS 3-7 DÍAS</h4>
+                <div id="short-term-setups"></div>
+            </div>
+            
+            <div class="timeline-section timeline-macro">
+                <h4 style="color: #ff6b6b; margin-bottom: 15px;">🎯 OBJETIVO MACRO (2-4 SEMANAS)</h4>
+                <div id="macro-setups"></div>
+            </div>
+        </div>
+
+        <!-- Smart Context -->
+        <div class="smart-context hidden" id="smartContext">
+            <h3 style="color: #8a2be2; margin-bottom: 20px;">🤖 ANÁLISIS INTELIGENTE</h3>
+            <div id="contextAnalysis"></div>
+        </div>
+
+        <!-- Alert System -->
+        <div class="alert-system hidden" id="alertSystem">
+            <h3 style="color: #ffd700; margin-bottom: 20px; grid-column: 1/-1;">🔔 SISTEMA DE ALERTAS GRADUALES</h3>
+            <div id="alertItems"></div>
+        </div>
+
+        <!-- Analysis Grid -->
+        <div class="analysis-grid hidden" id="analysisGrid">
+            <div class="chart-analysis">
+                <h4 style="color: #00d4ff; margin-bottom: 15px;" id="currentAnalysisTitle">Análisis Actual</h4>
+                <div id="chartContainer"></div>
+            </div>
+            <div class="chart-analysis">
+                <h4 style="color: #00ff88; margin-bottom: 15px;">📊 Resultados del Análisis</h4>
+                <div id="analysisResults">
+                    <div class="loading">
+                        <div class="spinner"></div>
+                        <p>Esperando gráfico...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Enhanced Export Panel -->
+        <div class="enhanced-export hidden" id="exportPanel">
+            <h2 style="color: #00ff88; margin-bottom: 25px; text-align: center;">
+                📤 EXPORT PARA EJECUCIÓN PRECISA
+            </h2>
+            
+            <div class="export-section">
+                <h4 style="color: #ffd700; margin-bottom: 15px;">📊 CONTEXTO MACRO COMPLETO</h4>
+                <div id="macroContext"></div>
+            </div>
+            
+            <div class="export-section">
+                <h4 style="color: #00d4ff; margin-bottom: 15px;">⚡ SETUPS DETECTADOS</h4>
+                <div id="exportSetups"></div>
+            </div>
+            
+            <div class="export-section">
+                <h4 style="color: #ff6b6b; margin-bottom: 15px;">❌ INVALIDACIONES CRÍTICAS</h4>
+                <div id="invalidations"></div>
+            </div>
+            
+            <div style="text-align: center; margin-top: 30px;">
+                <button class="export-button" onclick="exportToPreciseExecution()">
+
+🚀 EXPORTAR A EJECUCIÓN PRECISA
+                </button>
+            </div>
         </div>
     </div>
 
     <script>
-        let currentTimeframe = 'MN';
+        let currentTimeframe = '12M';
         let analysisData = {
-            MN: null,
-            W1: null,
-            D1: null,
-            H4: null
+            '12M': null,
+            '6M': null,
+            '3M': null,
+            'MN': null,
+            'W1': null,
+            'D1': null,
+            'H4': null
         };
-        let currentStep = 'MN';
+        let completedTimeframes = [];
+        let totalConfluenceScore = 0;
+        let detectedSetups = [];
+        let currentStep = 0;
+        let overallProgress = 0;
 
         const timeframeConfig = {
-            MN: {
-                title: '📊 MENSUAL (MN) - Análisis Macro',
-                description: 'Establecer la dirección de largo plazo y zonas clave',
+            '12M': {
+                title: '📈 12M - Macro Súper Estructura',
+                description: 'Ciclos de años - Detectar macro tendencias de largo plazo',
+                uploadText: 'Subir Gráfico 12M',
+                weight: 40,
+                timeEstimate: '6-18 meses',
+                icon: '📈'
+            },
+            '6M': {
+                title: '📊 6M - Macro Extendida', 
+                description: 'Estructura macro intermedia - Confirmar ciclos mayores',
+                uploadText: 'Subir Gráfico 6M',
+                weight: 35,
+                timeEstimate: '3-12 meses',
+                icon: '📊'
+            },
+            '3M': {
+                title: '📋 3M - Macro Intermedia',
+                description: 'Transición macro-micro - Identificar impulsos principales',
+                uploadText: 'Subir Gráfico 3M',
+                weight: 25,
+                timeEstimate: '6-12 semanas',
+                icon: '📋'
+            },
+            'MN': {
+                title: '🗓️ MN - Mensual',
+                description: 'Dirección macro definida - Zonas de reacción mensual',
                 uploadText: 'Subir Gráfico MN',
-                questions: [
-                    '¿La estructura general es alcista o bajista?',
-                    '¿Hay máximos/mínimos decrecientes o crecientes?',
-                    '¿Estamos cerca de zonas clave (1.22 OB mensual)?'
-                ]
+                weight: 20,
+                timeEstimate: '4-8 semanas',
+                icon: '🗓️'
             },
-            W1: {
-                title: '📈 SEMANAL (W1) - Impulso vs Retroceso',
-                description: 'Determinar si estamos en impulso o retroceso dentro del macro',
+            'W1': {
+                title: '📅 W1 - Semanal',
+                description: 'Impulso vs retroceso - Timing de entrada macro',
                 uploadText: 'Subir Gráfico W1',
-                questions: [
-                    '¿La estructura semanal es alcista o bajista?',
-                    '¿Coincide con la dirección mensual?',
-                    '¿Hay quiebre de estructura reciente?'
-                ]
+                weight: 15,
+                timeEstimate: '1-4 semanas',
+                icon: '📅'
             },
-            D1: {
-                title: '📋 DIARIO (D1) - Confirmación',
-                description: 'Confirmar la dirección y buscar zonas de entrada',
+            'D1': {
+                title: '📆 D1 - Diario',
+                description: 'Confirmación direccional - Zonas de demanda/supply',
                 uploadText: 'Subir Gráfico D1',
-                questions: [
-                    '¿Confirma la dirección del semanal?',
-                    '¿Hay FVG o zonas de supply/demand claras?',
-                    '¿El precio está en zona planificada?'
-                ]
+                weight: 10,
+                timeEstimate: '3-10 días',
+                icon: '📆'
             },
-            H4: {
-                title: '⚡ H4 - Ejecución y Timing',
-                description: 'Timing preciso para la entrada',
+            'H4': {
+                title: '⚡ H4 - Ejecución',
+                description: 'Timing preciso - CHoCH y zonas de entrada inmediata',
                 uploadText: 'Subir Gráfico H4',
-                questions: [
-                    '¿Hay CHoCH confirmado?',
-                    '¿El precio está en zona de entrada?',
-                    '¿La confluencia es clara?'
-                ]
+                weight: 5,
+                timeEstimate: '4-24 horas',
+                icon: '⚡'
+            }
+        };
+
+        const multiSetupTemplates = {
+            primary: {
+                type: 'MACRO PRINCIPAL',
+                class: 'setup-primary',
+                icon: '🎯'
+            },
+            secondary: {
+                type: 'SWING INTERMEDIO',
+                class: 'setup-secondary', 
+                icon: '📈'
+            },
+            scalp: {
+                type: 'SCALP/INTRADAY',
+                class: 'setup-scalp',
+                icon: '⚡'
             }
         };
 
@@ -548,367 +860,803 @@
             }
         });
 
-        function toggleCheck(checkbox) {
-            checkbox.classList.toggle('checked');
-            if (checkbox.classList.contains('checked')) {
-                checkbox.innerHTML = '✓';
-                checkbox.style.color = '#000';
-            } else {
-                checkbox.innerHTML = '';
-            }
-        }
-
         function selectTimeframe(timeframe) {
-            // Solo permitir avanzar secuencialmente
-            const timeframes = ['MN', 'W1', 'D1', 'H4'];
-            const currentIndex = timeframes.indexOf(currentTimeframe);
-            const newIndex = timeframes.indexOf(timeframe);
-            
-            if (newIndex > currentIndex && !analysisData[currentTimeframe]) {
-                alert(`⚠️ Completa primero el análisis de ${currentTimeframe} antes de avanzar`);
-                return;
-            }
-            
             currentTimeframe = timeframe;
-            updateUI();
+            updateTimeframeUI();
         }
 
-        function updateUI() {
-            // Update timeframe buttons
+        function updateTimeframeUI() {
+            // Update buttons
             document.querySelectorAll('.timeframe-btn').forEach(btn => {
                 btn.classList.remove('active');
+                if (completedTimeframes.includes(btn.id.replace('btn-', ''))) {
+                    btn.classList.add('completed');
+                }
             });
             document.getElementById(`btn-${currentTimeframe}`).classList.add('active');
 
             // Update upload section
             const config = timeframeConfig[currentTimeframe];
-            document.getElementById('upload-title').textContent = config.title;
+            document.getElementById('upload-title').textContent = `${config.icon} Sube tu gráfico de ${currentTimeframe} - ${config.title.split(' - ')[1]}`;
             document.getElementById('upload-desc').textContent = config.description;
             document.getElementById('upload-btn-text').textContent = config.uploadText;
 
-            // Update progress
-            updateProgress();
-            
             // Clear file input
             document.getElementById('fileInput').value = '';
         }
 
-        function updateProgress() {
-            const timeframes = ['MN', 'W1', 'D1', 'H4'];
-            const currentIndex = timeframes.indexOf(currentTimeframe);
+        function updateOverallProgress() {
+            const totalTimeframes = 7;
+            const completed = completedTimeframes.length;
+            const progressPercent = (completed / totalTimeframes) * 100;
             
-            timeframes.forEach((tf, index) => {
-                const step = document.getElementById(`step-${tf}`);
-                const connector = document.getElementById(`connector-${index + 1}`);
-                
-                if (index < currentIndex) {
-                    step.classList.add('completed');
-                    step.classList.remove('active');
-                    if (connector) connector.classList.add('active');
-                } else if (index === currentIndex) {
-                    step.classList.add('active');
-                    step.classList.remove('completed');
-                } else {
-                    step.classList.remove('active', 'completed');
-                    if (connector) connector.classList.remove('active');
-                }
-            });
+            document.getElementById('overallProgress').style.width = progressPercent + '%';
+            document.getElementById('progressText').textContent = `${completed}/${totalTimeframes} Temporalidades Completadas`;
+
+            overallProgress = progressPercent;
         }
 
         function processTimeframeChart(file, timeframe) {
             const reader = new FileReader();
             reader.onload = function(e) {
-                const analysis = createTimeframeAnalysis(timeframe, e.target.result);
-                analysisData[timeframe] = analysis;
-                renderAnalysis(timeframe, analysis);
-                analyzeChart(timeframe, analysis);
-                document.getElementById('noChartsMessage').style.display = 'none';
+                const analysisResults = analyzeTimeframeStructure(timeframe, e.target.result);
+                analysisData[timeframe] = analysisResults;
+                
+                // Mark as completed
+                if (!completedTimeframes.includes(timeframe)) {
+                    completedTimeframes.push(timeframe);
+                }
+                
+                // Show analysis panels
+                displayTimeframeAnalysis(timeframe, analysisResults);
+                updateOverallProgress();
+                updateConfluenceAnalysis();
+                
+                // Auto-advance to next timeframe
+                setTimeout(() => {
+                    advanceToNextTimeframe();
+                }, 2000);
             };
             reader.readAsDataURL(file);
         }
 
-        function createTimeframeAnalysis(timeframe, imageData) {
-            const config = timeframeConfig[timeframe];
+        function analyzeTimeframeStructure(timeframe, imageData) {
+            // Simulate sophisticated multi-setup analysis
+            const structures = ['Alcista', 'Bajista', 'Consolidación'];
+            const structure = structures[Math.floor(Math.random() * structures.length)];
+            
+            const basePrice = 1.1800;
+            const variation = (Math.random() - 0.5) * 0.0300;
+            const currentPrice = basePrice + variation;
+            
+            // Generate multiple setups for this timeframe
+            const setups = generateMultipleSetups(timeframe, structure, currentPrice);
+            
             return {
-                timeframe: timeframe,
-                image: imageData,
-                config: config,
-                status: 'analyzing',
-                structure: null,
-                keyLevels: null,
-                recommendation: null,
-                nextStep: null
+                timeframe,
+                structure,
+                currentPrice: currentPrice.toFixed(4),
+                setups,
+                confluences: generateConfluences(timeframe),
+                reactionZones: generateReactionZones(timeframe, currentPrice),
+                timeEstimates: generateTimeEstimates(timeframe),
+                imageData
             };
         }
 
-        function renderAnalysis(timeframe, analysis) {
-            const flowContainer = document.getElementById('analysisFlow');
-            const analysisDiv = document.createElement('div');
-            analysisDiv.className = 'timeframe-analysis active';
-            analysisDiv.id = `analysis-${timeframe}`;
+        function generateMultipleSetups(timeframe, structure, price) {
+            const setups = [];
+            const config = timeframeConfig[timeframe];
             
-            analysisDiv.innerHTML = `
-                <div class="timeframe-header">
-                    <div class="timeframe-title">
-                        ${analysis.config.title}
-                    </div>
-                    <div class="status-indicator analyzing"></div>
-                </div>
-                
-                <div class="chart-container">
-                    <div class="chart-image-container">
-                        <img src="${analysis.image}" alt="${timeframe} Chart" class="chart-image">
-                    </div>
-                    <div class="analysis-panel">
-                        <div class="loading">
-                            <div class="spinner"></div>
-                            <p>Analizando estructura de ${timeframe}...</p>
-                        </div>
-                    </div>
-                </div>
-            `;
+            // Primary setup (main direction)
+            setups.push({
+                type: 'primary',
+                name: `Setup Macro ${timeframe}`,
+                direction: structure,
+                entry: (price + (Math.random() - 0.5) * 0.0050).toFixed(4),
+                sl: (price + (Math.random() - 0.5) * 0.0100).toFixed(4),
+                tp: (price + (Math.random() - 0.5) * 0.0200).toFixed(4),
+                timeframe: config.timeEstimate,
+                confidence: 75 + Math.floor(Math.random() * 20),
+                description: `Setup principal siguiendo estructura ${structure.toLowerCase()} de ${timeframe}`
+            });
+
+            // Secondary setups (during the journey)
+            if (['12M', '6M', '3M', 'MN', 'W1'].includes(timeframe)) {
+                setups.push({
+                    type: 'secondary',
+                    name: `Swing Intermedio`,
+                    direction: structure === 'Bajista' ? 'Alcista' : 'Bajista',
+                    entry: (price + (Math.random() - 0.5) * 0.0030).toFixed(4),
+                    sl: (price + (Math.random() - 0.5) * 0.0060).toFixed(4),
+                    tp: (price + (Math.random() - 0.5) * 0.0120).toFixed(4),
+                    timeframe: '3-7 días',
+                    confidence: 60 + Math.floor(Math.random() * 25),
+                    description: `Retroceso técnico dentro de ${structure.toLowerCase()} mayor`
+                });
+            }
+
+            // Scalp setups (immediate opportunities)
+            if (['D1', 'H4'].includes(timeframe)) {
+                setups.push({
+                    type: 'scalp',
+                    name: `Scalp Inmediato`,
+                    direction: Math.random() > 0.5 ? 'Alcista' : 'Bajista',
+                    entry: (price + (Math.random() - 0.5) * 0.0020).toFixed(4),
+                    sl: (price + (Math.random() - 0.5) * 0.0040).toFixed(4),
+                    tp: (price + (Math.random() - 0.5) * 0.0080).toFixed(4),
+                    timeframe: '2-8 horas',
+                    confidence: 50 + Math.floor(Math.random() * 30),
+                    description: `Oportunidad intraday en zona de reacción`
+                });
+            }
+
+            return setups;
+        }
+
+        function generateConfluences(timeframe) {
+            const confluenceTypes = [
+                'Estructura clara',
+                'FVG identificado', 
+                'Nivel de reacción',
+                'Volumen confirmado',
+                'Divergencia RSI',
+                'Zona de supply/demand',
+                'Retroceso Fibonacci',
+                'Patrón armónico'
+            ];
             
-            // Remove previous analysis for this timeframe
-            const existing = document.getElementById(`analysis-${timeframe}`);
-            if (existing) {
-                existing.remove();
+            const count = 2 + Math.floor(Math.random() * 4);
+            const selected = [];
+            
+            for (let i = 0; i < count; i++) {
+                const confluence = confluenceTypes[Math.floor(Math.random() * confluenceTypes.length)];
+                if (!selected.includes(confluence)) {
+                    selected.push(confluence);
+                }
             }
             
-            flowContainer.appendChild(analysisDiv);
+            return selected;
         }
 
-        function analyzeChart(timeframe, analysis) {
-            setTimeout(() => {
-                const result = generateTimeframeAnalysis(timeframe);
-                analysis.status = 'completed';
-                analysis.structure = result.structure;
-                analysis.keyLevels = result.keyLevels;
-                analysis.recommendation = result.recommendation;
-                analysis.nextStep = result.nextStep;
+        function generateReactionZones(timeframe, currentPrice) {
+            const zones = [];
+            const config = timeframeConfig[timeframe];
+            
+            // Generate 2-4 reaction zones
+            for (let i = 0; i < 2 + Math.floor(Math.random() * 3); i++) {
+                const distance = (Math.random() - 0.5) * 0.0200;
+                const zonePrice = currentPrice + distance;
                 
-                updateAnalysisDisplay(timeframe, result);
-                checkIfCanProceed(timeframe);
-            }, 2000 + Math.random() * 1000);
+                zones.push({
+                    price: zonePrice.toFixed(4),
+                    type: distance > 0 ? 'Resistencia' : 'Soporte',
+                    strength: ['Débil', 'Moderada', 'Fuerte'][Math.floor(Math.random() * 3)],
+                    arrivalTime: generateArrivalTime(timeframe)
+                });
+            }
+            
+            return zones;
         }
 
-        function generateTimeframeAnalysis(timeframe) {
-            const structures = {
-                MN: {
-                    structures: ['Bajista (máximos decrecientes)', 'Alcista (mínimos crecientes)', 'Consolidación en rango'],
-                    levels: ['1.2200 (OB mensual)', '1.1800 (Soporte clave)', '0.9557 (Objetivo bajista)'],
-                    bias: ['Macro bajista - retroceso en curso', 'Macro alcista - continuación', 'Rango - esperar ruptura']
-                },
-                W1: {
-                    structures: ['Alcista (altos y bajos ascendentes)', 'Bajista (quiebre de estructura)', 'Retroceso dentro de macro'],
-                    levels: ['1.1900 (Resistencia semanal)', '1.1500 (Soporte semanal)', '1.1650 (Zona de equilibrio)'],
-                    bias: ['Impulso alcista activo', 'Corrección bajista', 'Retroceso saludable']
-                },
-                D1: {
-                    structures: ['Confirmación de W1', 'Divergencia con W1', 'FVG en formación'],
-                    levels: ['Supply diario activo', 'Demand diario respetado', 'FVG por rellenar'],
-                    bias: ['Setup alcista confirmado', 'Setup bajista confirmado', 'Esperar confirmación']
-                },
-                H4: {
-                    structures: ['CHoCH alcista confirmado', 'CHoCH bajista confirmado', 'Estructura intacta'],
-                    levels: ['Entry zone activa', 'Stop loss claro', 'Target definido'],
-                    bias: ['Entrada long lista', 'Entrada short lista', 'Esperar setup']
+        function generateTimeEstimates(timeframe) {
+            const estimates = {
+                immediate: `Próximas ${Math.floor(Math.random() * 12) + 4} horas`,
+                shortTerm: `${Math.floor(Math.random() * 5) + 2}-${Math.floor(Math.random() * 8) + 5} días`,
+                macro: timeframeConfig[timeframe].timeEstimate
+            };
+            
+            return estimates;
+        }
+
+        function generateArrivalTime(timeframe) {
+            const timeframes = {
+                '12M': ['6-18 meses', '12-24 meses'],
+                '6M': ['3-9 meses', '6-15 meses'],
+                '3M': ['6-12 semanas', '8-20 semanas'],
+                'MN': ['2-6 semanas', '4-10 semanas'],
+                'W1': ['1-3 semanas', '2-5 semanas'],
+                'D1': ['3-7 días', '5-12 días'],
+                'H4': ['4-12 horas', '8-24 horas']
+            };
+            
+            const options = timeframes[timeframe] || ['Indefinido'];
+            return options[Math.floor(Math.random() * options.length)];
+        }
+
+        function displayTimeframeAnalysis(timeframe, analysis) {
+            // Show panels
+            document.getElementById('setupsPanel').classList.remove('hidden');
+            document.getElementById('confluencePanel').classList.remove('hidden');
+            document.getElementById('timelinePanel').classList.remove('hidden');
+            document.getElementById('smartContext').classList.remove('hidden');
+            document.getElementById('alertSystem').classList.remove('hidden');
+            document.getElementById('analysisGrid').classList.remove('hidden');
+            document.getElementById('exportPanel').classList.remove('hidden');
+
+            // Display setups
+            displaySetups(analysis.setups);
+            
+            // Display reaction zones
+            displayReactionZones(analysis.reactionZones);
+            
+            // Update timeline
+            updateTimeline(analysis);
+            
+            // Show chart
+            displayChart(timeframe, analysis.imageData);
+            
+            // Update smart context
+            updateSmartContext(timeframe, analysis);
+            
+            // Update alerts
+            updateAlertSystem(analysis);
+        }
+
+        function displaySetups(setups) {
+            const primaryContainer = document.getElementById('setupsPrimary');
+            const secondaryContainer = document.getElementById('setupsSecondary');
+            
+            primaryContainer.innerHTML = '';
+            secondaryContainer.innerHTML = '';
+            
+            setups.forEach(setup => {
+                const setupHtml = createSetupCard(setup);
+                
+                if (setup.type === 'primary') {
+                    primaryContainer.innerHTML += setupHtml;
+                } else {
+                    secondaryContainer.innerHTML += setupHtml;
                 }
-            };
-            
-            const config = structures[timeframe];
-            const structure = config.structures[Math.floor(Math.random() * config.structures.length)];
-            const level = config.levels[Math.floor(Math.random() * config.levels.length)];
-            const bias = config.bias[Math.floor(Math.random() * config.bias.length)];
-            
-            return {
-                structure: structure,
-                keyLevels: level,
-                recommendation: bias,
-                nextStep: generateNextStep(timeframe, structure)
-            };
+            });
         }
 
-        function generateNextStep(timeframe, structure) {
-            const steps = {
-                MN: {
-                    next: 'W1',
-                    action: 'Bajar a semanal para confirmar si estamos en impulso o retroceso'
-                },
-                W1: {
-                    next: 'D1',
-                    action: 'Revisar diario para identificar zonas de entrada y FVGs'
-                },
-                D1: {
-                    next: 'H4',
-                    action: 'Confirmar timing exacto de entrada en H4'
-                },
-                H4: {
-                    next: 'TRADE',
-                    action: 'Setup listo - buscar confirmación en M15/M5 para entrada'
-                }
-            };
+        function createSetupCard(setup) {
+            const template = multiSetupTemplates[setup.type];
+            const directionClass = setup.direction === 'Alcista' ? 'bullish' : 'bearish';
             
-            return steps[timeframe];
-        }
-
-        function updateAnalysisDisplay(timeframe, result) {
-            const analysisDiv = document.getElementById(`analysis-${timeframe}`);
-            const analysisPanel = analysisDiv.querySelector('.analysis-panel');
-            const statusIndicator = analysisDiv.querySelector('.status-indicator');
-            
-            statusIndicator.className = 'status-indicator completed';
-            
-            const structureClass = result.structure.includes('Alcista') || result.structure.includes('alcista') ? 'bullish' :
-                                  result.structure.includes('Bajista') || result.structure.includes('bajista') ? 'bearish' : 'neutral';
-            
-            analysisPanel.innerHTML = `
-                <div class="structure-analysis">
-                    <h4 style="color: #00d4ff; margin-bottom: 15px;">📊 Análisis de Estructura</h4>
-                    <div class="structure-badge ${structureClass}">
-                        ${result.structure}
+            return `
+                <div class="${template.class}">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                        <h4 style="color: #ffd700;">${template.icon} ${setup.name}</h4>
+                        <span class="confidence-tag" style="background: rgba(0,212,255,0.2); padding: 4px 8px; border-radius: 10px; font-size: 0.8rem;">
+                            ${setup.confidence}%
+                        </span>
                     </div>
-                </div>
-                
-                <div class="key-levels">
-                    <h5 style="color: #ffd700; margin-bottom: 10px;">🎯 Niveles Clave</h5>
-                    <p>${result.keyLevels}</p>
-                </div>
-                
-                <div style="margin: 15px 0;">
-                    <h5 style="color: #00ff88; margin-bottom: 10px;">💡 Recomendación</h5>
-                    <p>${result.recommendation}</p>
-                </div>
-                
-                <div class="next-step">
-                    <h5 style="color: #ffd700; margin-bottom: 10px;">➡️ Siguiente Paso</h5>
-                    <p><strong>${result.nextStep.next}</strong>: ${result.nextStep.action}</p>
+                    
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
+                        <div>
+                            <span class="setup-badge ${directionClass}">${setup.direction}</span>
+                        </div>
+                        <div>
+                            <span class="time-tag">${setup.timeframe}</span>
+                        </div>
+                    </div>
+                    
+                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 10px;">
+                        <div>
+                            <small style="opacity: 0.7;">Entrada:</small><br>
+                            <span class="price-tag">${setup.entry}</span>
+                        </div>
+                        <div>
+                            <small style="opacity: 0.7;">Stop:</small><br>
+                            <span style="color: #ff6b6b;">${setup.sl}</span>
+                        </div>
+                        <div>
+                            <small style="opacity: 0.7;">Target:</small><br>
+                            <span style="color: #00ff88;">${setup.tp}</span>
+                        </div>
+                    </div>
+                    
+                    <p style="font-size: 0.9rem; opacity: 0.8; margin-top: 10px;">${setup.description}</p>
                 </div>
             `;
         }
 
-        function checkIfCanProceed(timeframe) {
-            const timeframes = ['MN', 'W1', 'D1', 'H4'];
-            const currentIndex = timeframes.indexOf(timeframe);
+        function displayReactionZones(zones) {
+            const container = document.getElementById('reactionZones');
+            let html = '<h4 style="color: #00d4ff; margin-bottom: 15px;">📍 Zonas de Reacción Detectadas</h4>';
+            
+            zones.forEach(zone => {
+                const typeClass = zone.type === 'Resistencia' ? 'bearish' : 'bullish';
+                html += `
+                    <div style="background: rgba(255,255,255,0.05); padding: 12px; border-radius: 8px; margin-bottom: 10px; border-left: 3px solid ${zone.type === 'Resistencia' ? '#ff6b6b' : '#00ff88'};">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <span><strong>${zone.price}</strong> - ${zone.type}</span>
+                            <span class="setup-badge ${typeClass}">${zone.strength}</span>
+                        </div>
+                        <small style="opacity: 0.7;">Llegada estimada: ${zone.arrivalTime}</small>
+                    </div>
+                `;
+            });
+            
+            container.innerHTML = html;
+        }
+
+        function updateTimeline(analysis) {
+            // Immediate setups
+            const immediateContainer = document.getElementById('immediate-setups');
+            const immediateSetups = analysis.setups.filter(s => s.type === 'scalp');
+            
+            immediateContainer.innerHTML = immediateSetups.map(setup => `
+                <div style="background: rgba(255,193,7,0.1); padding: 15px; border-radius: 10px; margin-bottom: 10px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <strong>${setup.name}</strong>
+                        <span class="time-tag">${setup.timeframe}</span>
+                    </div>
+                    <p style="margin-top: 8px; font-size: 0.9rem;">${setup.description}</p>
+                    <div style="margin-top: 10px;">
+                        <span class="price-tag">${setup.entry}</span>
+                        <span style="margin: 0 10px;">→</span>
+                        <span style="color: #00ff88;">${setup.tp}</span>
+                    </div>
+                </div>
+            `).join('');
+
+            // Short term setups
+            const shortContainer = document.getElementById('short-term-setups');
+            const shortSetups = analysis.setups.filter(s => s.type === 'secondary');
+            
+            shortContainer.innerHTML = shortSetups.map(setup => `
+                <div style="background: rgba(0,212,255,0.1); padding: 15px; border-radius: 10px; margin-bottom: 10px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <strong>${setup.name}</strong>
+                        <span class="time-tag">${setup.timeframe}</span>
+                    </div>
+                    <p style="margin-top: 8px; font-size: 0.9rem;">${setup.description}</p>
+                    <div style="margin-top: 10px;">
+                        <span class="price-tag">${setup.entry}</span>
+                        <span style="margin: 0 10px;">→</span>
+                        <span style="color: #00ff88;">${setup.tp}</span>
+                    </div>
+                </div>
+            `).join('');
+
+            // Macro setups
+            const macroContainer = document.getElementById('macro-setups');
+            const macroSetups = analysis.setups.filter(s => s.type === 'primary');
+            
+            macroContainer.innerHTML = macroSetups.map(setup => `
+                <div style="background: rgba(255,107,107,0.1); padding: 15px; border-radius: 10px; margin-bottom: 10px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <strong>${setup.name}</strong>
+                        <span class="time-tag">${setup.timeframe}</span>
+                    </div>
+                    <p style="margin-top: 8px; font-size: 0.9rem;">${setup.description}</p>
+                    <div style="margin-top: 10px;">
+                        <span class="price-tag">${setup.entry}</span>
+                        <span style="margin: 0 10px;">→</span>
+                        <span style="color: #00ff88;">${setup.tp}</span>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function updateConfluenceAnalysis() {
+            const confluenceContainer = document.getElementById('confluenceGrid');
+            const allConfluences = [];
+            let totalWeight = 0;
+            let weightedScore = 0;
+
+            // Collect all confluences
+            Object.keys(analysisData).forEach(tf => {
+                if (analysisData[tf]) {
+                    const tfConfig = timeframeConfig[tf];
+                    const confluences = analysisData[tf].confluences;
+                    
+                    confluences.forEach(confluence => {
+                        allConfluences.push({
+                            timeframe: tf,
+                            confluence,
+                            weight: tfConfig.weight
+                        });
+                    });
+
+                    totalWeight += tfConfig.weight * confluences.length;
+                    weightedScore += tfConfig.weight * confluences.length;
+                }
+            });
+
+            // Display confluences
+            confluenceContainer.innerHTML = allConfluences.map(item => `
+                <div class="confluence-item">
+                    <div class="confluence-weight">${item.weight}%</div>
+                    <h5 style="color: #00d4ff; margin-bottom: 8px;">${item.timeframe}</h5>
+                    <p style="font-size: 0.9rem;">${item.confluence}</p>
+                </div>
+            `).join('');
+
+            // Update confidence meter
+            const confidencePercent = Math.min((weightedScore / 100) * 100, 100);
+            updateConfidenceMeter(confidencePercent);
+        }
+
+        function updateConfidenceMeter(confidence) {
+            const indicator = document.getElementById('confidenceIndicator');
+            const text = document.getElementById('confidenceText');
+            
+            indicator.style.left = confidence + '%';
+            text.textContent = Math.round(confidence) + '%';
+        }
+
+        function displayChart(timeframe, imageData) {
+            const container = document.getElementById('chartContainer');
+            const title = document.getElementById('currentAnalysisTitle');
+            
+            title.textContent = `Análisis ${timeframe} - ${timeframeConfig[timeframe].title}`;
+            
+            container.innerHTML = `
+                <img src="${imageData}" alt="${timeframe} Chart" class="chart-image">
+            `;
+
+            // Update analysis results
+            const resultsContainer = document.getElementById('analysisResults');
+            const analysis = analysisData[timeframe];
+            
+            resultsContainer.innerHTML = `
+                <div style="background: rgba(255,255,255,0.05); padding: 20px; border-radius: 15px;">
+                    <h5 style="color: #ffd700; margin-bottom: 15px;">📊 Análisis Completado</h5>
+                    <p><strong>Estructura:</strong> ${analysis.structure}</p>
+                    <p><strong>Precio Actual:</strong> ${analysis.currentPrice}</p>
+                    <p><strong>Setups Detectados:</strong> ${analysis.setups.length}</p>
+                    <p><strong>Zonas de Reacción:</strong> ${analysis.reactionZones.length}</p>
+                    <div style="margin-top: 15px;">
+                        <h6 style="color: #00ff88; margin-bottom: 10px;">Confluencias:</h6>
+                        ${analysis.confluences.map(c => `<span class="setup-badge neutral" style="margin: 2px; font-size: 0.8rem;">${c}</span>`).join('')}
+                    </div>
+                </div>
+            `;
+        }
+
+        function updateSmartContext(timeframe, analysis) {
+            const container = document.getElementById('contextAnalysis');
+            
+            // Generate intelligent context
+            const context = generateIntelligentContext(timeframe, analysis);
+            
+            container.innerHTML = `
+                <div style="background: rgba(255,255,255,0.05); padding: 20px; border-radius: 15px;">
+                    <h5 style="color: #8a2be2; margin-bottom: 15px;">🤖 Análisis Contextual Inteligente</h5>
+                    <div style="background: rgba(138,43,226,0.1); padding: 15px; border-radius: 10px; border-left: 4px solid #8a2be2;">
+                        <p style="margin-bottom: 15px;"><strong>Contexto:</strong> ${context.situation}</p>
+                        <div style="margin-bottom: 15px;">
+                            <h6 style="color: #ffd700; margin-bottom: 10px;">⚡ OPORTUNIDADES MIENTRAS TANTO:</h6>
+                            ${context.opportunities.map(opp => `
+                                <div style="background: rgba(255,215,0,0.1); padding: 10px; border-radius: 8px; margin-bottom: 8px;">
+                                    <strong>${opp.type}:</strong> ${opp.description}
+                                </div>
+                            `).join('')}
+                        </div>
+                        <p style="color: #00ff88;"><strong>Recomendación:</strong> ${context.recommendation}</p>
+                    </div>
+                </div>
+            `;
+        }
+
+        function generateIntelligentContext(timeframe, analysis) {
+            const macroSetup = analysis.setups.find(s => s.type === 'primary');
+            const immediateSetups = analysis.setups.filter(s => s.type !== 'primary');
+            
+            const context = {
+                situation: `Aunque el objetivo macro de ${timeframe} es ${macroSetup.direction.toLowerCase()} hacia ${macroSetup.tp}, el mercado debe desarrollarse progresivamente.`,
+                opportunities: [],
+                recommendation: `Ejecuta setups inmediatos mientras esperas la confirmación macro en ${macroSetup.timeframe}.`
+            };
+
+            immediateSetups.forEach((setup, index) => {
+                context.opportunities.push({
+                    type: setup.name,
+                    description: `${setup.direction} desde ${setup.entry} → ${setup.tp} (${setup.timeframe})`
+                });
+            });
+
+            return context;
+        }
+
+        function updateAlertSystem(analysis) {
+            const container = document.getElementById('alertItems');
+            const alerts = generateAlerts(analysis);
+            
+            container.innerHTML = alerts.map(alert => `
+                <div class="alert-item alert-${alert.color}">
+                    <h5 style="margin-bottom: 10px;">${alert.title}</h5>
+                    <p style="font-size: 0.9rem; margin-bottom: 8px;">${alert.description}</p>
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <span class="time-tag">${alert.timing}</span>
+                        <span class="setup-badge ${alert.priority === 'ALTA' ? 'bearish' : alert.priority === 'MEDIA' ? 'neutral' : 'bullish'}">${alert.priority}</span>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function generateAlerts(analysis) {
+            const alerts = [];
+            
+            analysis.setups.forEach(setup => {
+                let color = 'yellow';
+                let priority = 'MEDIA';
+                
+                if (setup.type === 'scalp') {
+                    color = 'red';
+                    priority = 'ALTA';
+                } else if (setup.type === 'primary') {
+                    color = 'orange';
+                    priority = 'BAJA';
+                }
+                
+                alerts.push({
+                    title: `${setup.name} Disponible`,
+                    description: `Setup ${setup.direction.toLowerCase()} formándose en zona ${setup.entry}`,
+                    timing: setup.timeframe,
+                    color,
+                    priority
+                });
+            });
+            
+            return alerts;
+        }
+
+        function advanceToNextTimeframe() {
+            const timeframes = ['12M', '6M', '3M', 'MN', 'W1', 'D1', 'H4'];
+            const currentIndex = timeframes.indexOf(currentTimeframe);
             
             if (currentIndex < timeframes.length - 1) {
                 const nextTimeframe = timeframes[currentIndex + 1];
-                setTimeout(() => {
-                    currentTimeframe = nextTimeframe;
-                    updateUI();
-                    showNextStepPrompt(nextTimeframe);
-                }, 3000);
-            } else {
-                // Último timeframe completado
-                setTimeout(() => {
-                    showFinalDecision();
-                }, 3000);
-            }
-        }
-
-        function showNextStepPrompt(nextTimeframe) {
-            const config = timeframeConfig[nextTimeframe];
-            alert(`✅ Análisis completado!\n\n🎯 Siguiente paso: ${config.title}\n\n📋 ${config.description}`);
-        }
-
-        function showFinalDecision() {
-            const decisionPanel = document.getElementById('decisionPanel');
-            const allAnalyzed = Object.values(analysisData).every(data => data !== null);
-            
-            if (allAnalyzed) {
-                const decision = generateFinalDecision();
-                document.getElementById('finalDecision').innerHTML = decision;
-                decisionPanel.style.display = 'block';
+                currentTimeframe = nextTimeframe;
+                updateTimeframeUI();
                 
-                // Scroll to decision
-                decisionPanel.scrollIntoView({ behavior: 'smooth' });
+                // Show completion notification
+                showCompletionNotification(timeframes[currentIndex], nextTimeframe);
+            } else {
+                // All timeframes completed
+                showFinalExportReady();
             }
         }
 
-        function generateFinalDecision() {
-            // Analizar coherencia entre timeframes
-            const mnBias = analysisData.MN.structure.includes('Alcista') ? 'bullish' : 
-                          analysisData.MN.structure.includes('Bajista') ? 'bearish' : 'neutral';
-            const w1Bias = analysisData.W1.structure.includes('Alcista') ? 'bullish' :
-                          analysisData.W1.structure.includes('Bajista') ? 'bearish' : 'neutral';
+        function showCompletionNotification(completed, next) {
+            const notification = document.createElement('div');
+            notification.className = 'fade-in';
+            notification.style.cssText = `
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                background: linear-gradient(135deg, rgba(0,255,136,0.95), rgba(0,212,255,0.95));
+                color: #000;
+                padding: 30px;
+                border-radius: 20px;
+                text-align: center;
+                z-index: 1000;
+                box-shadow: 0 20px 60px rgba(0,255,136,0.4);
+                backdrop-filter: blur(15px);
+            `;
             
-            let scenario = '';
-            let strategy = '';
-            let action = '';
+            notification.innerHTML = `
+                <h3 style="margin-bottom: 15px;">✅ ${completed} Completado</h3>
+                <p style="margin-bottom: 20px;">Avanzando automáticamente a <strong>${next}</strong></p>
+                <div class="spinner" style="margin: 0 auto; border-color: rgba(0,0,0,0.2); border-top-color: #000;"></div>
+            `;
             
-            if (mnBias === 'bearish' && w1Bias === 'bullish') {
-                scenario = '🔄 MN Bajista + W1 Alcista';
-                strategy = 'W1 está haciendo retroceso dentro de macro bajista';
-                action = 'Aprovechar compras cortas en H4/H1, pero cuidado con zonas clave MN (1.22)';
-            } else if (mnBias === 'bearish' && w1Bias === 'bearish') {
-                scenario = '📉 MN Bajista + W1 Bajista';
-                strategy = 'Mercado alineado - tendencia fuerte';
-                action = 'Buscar SOLO ventas en retrocesos a FVG/Supply';
-            } else if (mnBias === 'bullish' && w1Bias === 'bearish') {
-                scenario = '📈 MN Alcista + W1 Bajista';
-                strategy = 'W1 está corrigiendo dentro de macro alcista';
-                action = 'Esperar zonas de demanda en semanal para entrar largos';
-            } else if (mnBias === 'bullish' && w1Bias === 'bullish') {
-                scenario = '🚀 MN Alcista + W1 Alcista';
-                strategy = 'Mercado en pleno impulso mayor';
-                action = 'Buscar SOLO compras en retrocesos a FVG/Demanda';
-            } else {
-                scenario = '⚠️ Escenario Mixto';
-                strategy = 'Señales contradictorias o neutrales';
-                action = 'Esperar mayor claridad antes de operar';
-            }
+            document.body.appendChild(notification);
             
-            const riskLevel = (mnBias !== w1Bias) ? 'MEDIO-ALTO' : 'BAJO-MEDIO';
-            const tradeType = (mnBias === w1Bias) ? 'SWING' : 'SCALP/INTRADAY';
-            
-            return `
-                <div style="background: rgba(255,255,255,0.05); padding: 20px; border-radius: 10px; margin-bottom: 20px;">
-                    <h3 style="color: #ffd700; margin-bottom: 15px;">🎯 Escenario Identificado</h3>
-                    <div class="structure-badge ${mnBias === w1Bias ? 'bullish' : 'neutral'}">${scenario}</div>
-                    <p style="margin: 15px 0;"><strong>Interpretación:</strong> ${strategy}</p>
-                </div>
+            setTimeout(() => {
+                document.body.removeChild(notification);
+            }, 3000);
+        }
 
-                <div style="background: rgba(0,255,136,0.1); padding: 20px; border-radius: 10px; margin-bottom: 20px; border-left: 5px solid #00ff88;">
-                    <h4 style="color: #00ff88; margin-bottom: 15px;">📋 Plan de Acción</h4>
-                    <p><strong>Estrategia:</strong> ${action}</p>
-                    <p><strong>Tipo de Operación:</strong> ${tradeType}</p>
-                    <p><strong>Nivel de Riesgo:</strong> ${riskLevel}</p>
-                </div>
+function showFinalExportReady() {
+            updateExportPanel();
+            
+            const notification = document.createElement('div');
+            notification.className = 'fade-in';
+            notification.style.cssText = `
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                background: linear-gradient(135deg, rgba(0,255,136,0.95), rgba(0,212,255,0.95));
+                color: #000;
+                padding: 30px;
+                border-radius: 20px;
+                text-align: center;
+                z-index: 1000;
+                box-shadow: 0 20px 60px rgba(0,255,136,0.4);
+                backdrop-filter: blur(15px);
+            `;
+            
+            notification.innerHTML = `
+                <h3 style="margin-bottom: 15px;">🎉 ¡ANÁLISIS COMPLETO!</h3>
+                <p style="margin-bottom: 20px;">Todas las temporalidades analizadas con éxito</p>
+                <div style="color: #000; font-weight: bold;">Preparando export final...</div>
+            `;
+            
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                document.body.removeChild(notification);
+            }, 4000);
+        }
 
-                <div style="background: rgba(255,215,0,0.1); padding: 20px; border-radius: 10px; margin-bottom: 25px; border-left: 5px solid #ffd700;">
-                    <h4 style="color: #ffd700; margin-bottom: 15px;">🚨 Reglas de Ejecución</h4>
-                    <p>✅ <strong>SÍ operar si:</strong> Precio está en zona planificada + confirmación en M15/M5</p>
-                    <p>❌ <strong>NO operar si:</strong> Precio fuera de zonas marcadas o sin confirmación clara</p>
-                    <p>⏰ <strong>Timing:</strong> Solo entrar con CHoCH claro en menor temporalidad</p>
+        function updateExportPanel() {
+            const macroContainer = document.getElementById('macroContext');
+            const setupsContainer = document.getElementById('exportSetups');
+            const invalidationsContainer = document.getElementById('invalidations');
+            
+            // Macro context
+            const macroAnalysis = completedTimeframes.map(tf => analysisData[tf]).filter(Boolean);
+            macroContainer.innerHTML = `
+                <p><strong>Dirección Macro (12M-6M):</strong> ${macroAnalysis[0]?.structure || 'Análisis completado'}</p>
+                <p><strong>Temporalidades Analizadas:</strong> ${completedTimeframes.join(', ')}</p>
+                <p><strong>Confluencia Total:</strong> ${Math.round((totalConfluenceScore / completedTimeframes.length) * 100)}%</p>
+            `;
+            
+            // Export setups
+            let allSetups = [];
+            completedTimeframes.forEach(tf => {
+                if (analysisData[tf]?.setups) {
+                    allSetups = [...allSetups, ...analysisData[tf].setups];
+                }
+            });
+            
+            setupsContainer.innerHTML = allSetups.map(setup => `
+                <div class="setup-card setup-${setup.type}">
+                    <h5 style="color: #ffd700; margin-bottom: 10px;">${setup.name}</h5>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px;">
+                        <div>📍 ${setup.entry}</div>
+                        <div>🎯 ${setup.tp}</div>
+                        <div>⏰ ${setup.timeframe}</div>
+                    </div>
+                    <p style="margin-top: 8px; font-size: 0.9rem; opacity: 0.8;">${setup.description}</p>
                 </div>
-
-                <div class="action-buttons">
-                    <button class="action-btn confirm-btn" onclick="confirmSetup()">
-                        ✅ Setup Claro - Proceder
-                    </button>
-                    <button class="action-btn wait-btn" onclick="waitForBetter()">
-                        ⏳ Esperar Mejor Setup
-                    </button>
-                    <button class="action-btn reject-btn" onclick="rejectSetup()">
-                        ❌ Escenario Confuso - No Operar
-                    </button>
+            `).join('');
+            
+            // Invalidations
+            invalidationsContainer.innerHTML = `
+                <div style="background: rgba(255,107,107,0.1); padding: 15px; border-radius: 10px; border-left: 4px solid #ff6b6b;">
+                    <p><strong>Invalidación Macro:</strong> Quiebre por debajo de soporte clave mensual</p>
+                    <p><strong>Invalidación Inmediata:</strong> Pérdida de estructura en H4</p>
+                    <p><strong>Señales de Alerta:</strong> Cambio de carácter en menor temporalidad</p>
                 </div>
             `;
         }
 
-        function confirmSetup() {
-            alert('🎯 ¡Perfecto!\n\n📋 Siguiente paso:\n1. Baja a M15/M5 SOLO si el precio está en tu zona\n2. Busca CHoCH claro + volumen\n3. Entrada con stop loss definido\n\n¡Buena suerte con el trade!');
+        function exportToPreciseExecution() {
+            // Prepare comprehensive data for export
+            const exportData = {
+                macroContext: {
+                    timeframesAnalyzed: completedTimeframes,
+                    overallBias: determineMacroBias(),
+                    confidenceLevel: Math.round((totalConfluenceScore / completedTimeframes.length) * 100),
+                    keyLevels: extractKeyLevels()
+                },
+                immediateSetups: getImmediateSetups(),
+                swingSetups: getSwingSetups(),
+                macroSetups: getMacroSetups(),
+                invalidationLevels: getInvalidationLevels(),
+                timeline: getSetupTimeline()
+            };
+            
+            // Store in sessionStorage for the execution page
+            sessionStorage.setItem('compuZettaAnalysis', JSON.stringify(exportData));
+            
+            // Show export confirmation
+            const exportConfirmation = document.createElement('div');
+            exportConfirmation.className = 'fade-in';
+            exportConfirmation.style.cssText = `
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                background: linear-gradient(135deg, rgba(255,215,0,0.95), rgba(255,165,0,0.95));
+                color: #000;
+                padding: 40px;
+                border-radius: 20px;
+                text-align: center;
+                z-index: 1000;
+                box-shadow: 0 20px 60px rgba(255,215,0,0.4);
+                backdrop-filter: blur(15px);
+                max-width: 500px;
+            `;
+            
+            exportConfirmation.innerHTML = `
+                <h3 style="margin-bottom: 20px;">📤 DATOS EXPORTADOS</h3>
+                <div style="background: rgba(0,0,0,0.1); padding: 20px; border-radius: 10px; margin-bottom: 20px;">
+                    <p><strong>Setups Detectados:</strong> ${exportData.immediateSetups.length + exportData.swingSetups.length + exportData.macroSetups.length}</p>
+                    <p><strong>Temporalidades:</strong> ${exportData.macroContext.timeframesAnalyzed.join(', ')}</p>
+                    <p><strong>Confianza:</strong> ${exportData.macroContext.confidenceLevel}%</p>
+                </div>
+                <p style="margin-bottom: 20px;">Datos listos para ejecución precisa</p>
+                <button onclick="this.parentElement.remove()" style="background: #000; color: #ffd700; border: none; padding: 10px 20px; border-radius: 10px; cursor: pointer; font-weight: bold;">
+                    ✅ CONTINUAR
+                </button>
+            `;
+            
+            document.body.appendChild(exportConfirmation);
         }
 
-        function waitForBetter() {
-            alert('⏳ Decisión inteligente\n\n📋 Mantente alerta:\n1. Revisa si el precio llega a tus zonas marcadas\n2. Espera confirmación clara\n3. No perseguir al mercado\n\n💡 La paciencia es clave en trading');
+        function determineMacroBias() {
+            const macroSetups = [];
+            completedTimeframes.forEach(tf => {
+                if (analysisData[tf]?.setups) {
+                    const primarySetup = analysisData[tf].setups.find(s => s.type === 'primary');
+                    if (primarySetup) macroSetups.push(primarySetup.direction);
+                }
+            });
+            
+            const bullishCount = macroSetups.filter(d => d === 'Alcista').length;
+            const bearishCount = macroSetups.filter(d => d === 'Bajista').length;
+            
+            if (bullishCount > bearishCount) return 'Alcista';
+            if (bearishCount > bullishCount) return 'Bajista';
+            return 'Neutral';
         }
 
-        function rejectSetup() {
-            alert('🛑 Muy bien por no forzar\n\n📋 Próximos pasos:\n1. Espera mayor claridad en las estructuras\n2. Re-analiza en unas horas\n3. Mantén tu disciplina\n\n💪 Preservar capital es ganar');
+        function extractKeyLevels() {
+            const levels = [];
+            completedTimeframes.forEach(tf => {
+                if (analysisData[tf]?.reactionZones) {
+                    levels.push(...analysisData[tf].reactionZones.map(zone => ({
+                        timeframe: tf,
+                        price: zone.price,
+                        type: zone.type
+                    })));
+                }
+            });
+            return levels;
         }
 
-        // Initialize
-        updateUI();
+        function getImmediateSetups() {
+            const immediateSetups = [];
+            ['H4', 'D1'].forEach(tf => {
+                if (analysisData[tf]?.setups) {
+                    const scalps = analysisData[tf].setups.filter(s => s.type === 'scalp');
+                    immediateSetups.push(...scalps);
+                }
+            });
+            return immediateSetups;
+        }
+
+        function getSwingSetups() {
+            const swingSetups = [];
+            ['W1', 'D1'].forEach(tf => {
+                if (analysisData[tf]?.setups) {
+                    const swings = analysisData[tf].setups.filter(s => s.type === 'secondary');
+                    swingSetups.push(...swings);
+                }
+            });
+            return swingSetups;
+        }
+
+        function getMacroSetups() {
+            const macroSetups = [];
+            ['12M', '6M', '3M', 'MN'].forEach(tf => {
+                if (analysisData[tf]?.setups) {
+                    const macro = analysisData[tf].setups.filter(s => s.type === 'primary');
+                    macroSetups.push(...macro);
+                }
+            });
+            return macroSetups;
+        }
+
+        function getInvalidationLevels() {
+            return [
+                'Macro: Cierre mensual por debajo de 1.1200',
+                'Swing: Pérdida de estructura semanal',
+                'Inmediato: Cambio de carácter en H4'
+            ];
+        }
+
+        function getSetupTimeline() {
+            return {
+                immediate: '2-24 horas',
+                shortTerm: '2-7 días',
+                macro: '2-8 semanas'
+            };
+        }
+
+        // Initialize the application
+        updateTimeframeUI();
+        updateOverallProgress();
     </script>
 </body>
 </html>
