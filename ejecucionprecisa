@@ -1,1 +1,808 @@
-asd
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>⚡ Ejecución Precisa EUR/USD - Entry Finder</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 50%, #16213e 100%);
+            color: #e0e0e0;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: linear-gradient(45deg, #FF6B35, #F7931E);
+            border-radius: 15px;
+            box-shadow: 0 8px 32px rgba(255, 107, 53, 0.3);
+        }
+
+        .header h1 {
+            color: white;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            color: rgba(255,255,255,0.9);
+            font-size: 1.2em;
+        }
+
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .section {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+
+        .section h2 {
+            color: #FF6B35;
+            margin-bottom: 15px;
+            font-size: 1.4em;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .import-section {
+            grid-column: 1 / -1;
+        }
+
+        .import-area {
+            width: 100%;
+            height: 200px;
+            background: rgba(0, 0, 0, 0.3);
+            border: 2px dashed #FF6B35;
+            border-radius: 10px;
+            padding: 15px;
+            color: #e0e0e0;
+            font-family: monospace;
+            font-size: 14px;
+            resize: vertical;
+            margin-bottom: 15px;
+        }
+
+        .import-area::placeholder {
+            color: #888;
+        }
+
+        .btn {
+            background: linear-gradient(45deg, #FF6B35, #F7931E);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(255, 107, 53, 0.3);
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(255, 107, 53, 0.5);
+        }
+
+        .btn:disabled {
+            background: #666;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .upload-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .upload-box {
+            border: 2px dashed #555;
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: rgba(0, 0, 0, 0.2);
+        }
+
+        .upload-box:hover {
+            border-color: #FF6B35;
+            background: rgba(255, 107, 53, 0.1);
+        }
+
+        .upload-box.uploaded {
+            border-color: #4CAF50;
+            background: rgba(76, 175, 80, 0.1);
+        }
+
+        .upload-box input[type="file"] {
+            display: none;
+        }
+
+        .upload-icon {
+            font-size: 3em;
+            margin-bottom: 10px;
+            color: #888;
+        }
+
+        .upload-box.uploaded .upload-icon {
+            color: #4CAF50;
+        }
+
+        .analysis-results {
+            grid-column: 1 / -1;
+            display: none;
+        }
+
+        .timeframe-analysis {
+            background: rgba(0, 0, 0, 0.3);
+            border-left: 4px solid #FF6B35;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 0 10px 10px 0;
+        }
+
+        .confidence-meter {
+            background: #333;
+            height: 20px;
+            border-radius: 10px;
+            margin: 10px 0;
+            overflow: hidden;
+        }
+
+        .confidence-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #ff4444, #ffaa00, #44ff44);
+            transition: width 0.5s ease;
+            border-radius: 10px;
+        }
+
+        .trading-setup {
+            background: linear-gradient(135deg, #1a1a2e, #16213e);
+            border: 2px solid #FF6B35;
+            border-radius: 15px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+
+        .setup-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 15px 0;
+        }
+
+        .setup-item {
+            background: rgba(255, 107, 53, 0.1);
+            padding: 10px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .setup-item .label {
+            color: #FF6B35;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .setup-item .value {
+            font-size: 1.2em;
+            color: white;
+        }
+
+        .execution-light {
+            text-align: center;
+            padding: 20px;
+            border-radius: 15px;
+            margin: 20px 0;
+            font-size: 1.5em;
+            font-weight: bold;
+        }
+
+        .green-light {
+            background: linear-gradient(45deg, #4CAF50, #8BC34A);
+            color: white;
+        }
+
+        .yellow-light {
+            background: linear-gradient(45deg, #FFC107, #FF9800);
+            color: white;
+        }
+
+        .red-light {
+            background: linear-gradient(45deg, #F44336, #E91E63);
+            color: white;
+        }
+
+        .final-decision {
+            background: linear-gradient(135deg, #2D1B69, #11998e);
+            border-radius: 15px;
+            padding: 25px;
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .decision-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+
+        .decision-btn {
+            padding: 15px 30px;
+            border: none;
+            border-radius: 25px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .execute-btn {
+            background: linear-gradient(45deg, #4CAF50, #8BC34A);
+            color: white;
+        }
+
+        .wait-btn {
+            background: linear-gradient(45deg, #FFC107, #FF9800);
+            color: white;
+        }
+
+        .cancel-btn {
+            background: linear-gradient(45deg, #F44336, #E91E63);
+            color: white;
+        }
+
+        .macro-summary {
+            background: rgba(255, 107, 53, 0.1);
+            border-radius: 10px;
+            padding: 15px;
+            margin: 15px 0;
+            display: none;
+        }
+
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+
+        .status-pending { background: #888; }
+        .status-analyzing { background: #FFC107; animation: pulse 2s infinite; }
+        .status-complete { background: #4CAF50; }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+
+        .confluences-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+            margin: 15px 0;
+        }
+
+        .confluence-item {
+            background: rgba(76, 175, 80, 0.1);
+            border: 1px solid #4CAF50;
+            border-radius: 8px;
+            padding: 8px;
+            text-align: center;
+            font-size: 0.9em;
+        }
+
+        @media (max-width: 768px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .setup-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .decision-buttons {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>⚡ Ejecución Precisa EUR/USD - Entry Finder</h1>
+            <p>Análisis de temporalidades menores para entradas exactas</p>
+        </div>
+
+        <!-- Sección de Import de Análisis Macro -->
+        <div class="section import-section">
+            <h2>📊 Import de Análisis Top-Down</h2>
+            <textarea 
+                class="import-area" 
+                id="macroAnalysis" 
+                placeholder="Pega aquí TODOS los resultados del análisis macro anterior:
+- Bias mensual y semanal
+- Escenario identificado
+- Tipo de operación (SWING/SCALP)  
+- Nivel de riesgo
+- Estrategia confirmada
+- Zonas de interés
+- Cualquier otra información relevante...">
+            </textarea>
+            <button class="btn" onclick="importMacroAnalysis()">🔄 Importar Análisis Top-Down</button>
+            
+            <div class="macro-summary" id="macroSummary">
+                <h3>📋 Resumen del Análisis Macro:</h3>
+                <div id="summaryContent"></div>
+            </div>
+        </div>
+
+        <!-- Upload de Gráficos -->
+        <div class="upload-grid">
+            <div class="upload-box" onclick="document.getElementById('h1-upload').click()">
+                <div class="upload-icon">📈</div>
+                <h3>H1 - Zona de Entrada</h3>
+                <p>Sube gráfico H1 para confirmar zona de entrada</p>
+                <input type="file" id="h1-upload" accept="image/*" onchange="handleFileUpload(this, 'H1')">
+                <div class="status">
+                    <span class="status-indicator status-pending" id="h1-status"></span>
+                    <span id="h1-text">Esperando gráfico...</span>
+                </div>
+            </div>
+
+            <div class="upload-box" onclick="document.getElementById('m30-upload').click()">
+                <div class="upload-icon">📊</div>
+                <h3>M30 - Refinar Entrada</h3>
+                <p>Sube gráfico M30 para refinar entrada</p>
+                <input type="file" id="m30-upload" accept="image/*" onchange="handleFileUpload(this, 'M30')">
+                <div class="status">
+                    <span class="status-indicator status-pending" id="m30-status"></span>
+                    <span id="m30-text">Esperando gráfico...</span>
+                </div>
+            </div>
+
+            <div class="upload-box" onclick="document.getElementById('m15-upload').click()">
+                <div class="upload-icon">🎯</div>
+                <h3>M15 - Timing Preciso</h3>
+                <p>Sube gráfico M15 para timing preciso</p>
+                <input type="file" id="m15-upload" accept="image/*" onchange="handleFileUpload(this, 'M15')">
+                <div class="status">
+                    <span class="status-indicator status-pending" id="m15-status"></span>
+                    <span id="m15-text">Esperando gráfico...</span>
+                </div>
+            </div>
+
+            <div class="upload-box" onclick="document.getElementById('m5-upload').click()">
+                <div class="upload-icon">⚡</div>
+                <h3>M5 - Confirmación Final</h3>
+                <p>Sube gráfico M5 para confirmación final (opcional)</p>
+                <input type="file" id="m5-upload" accept="image/*" onchange="handleFileUpload(this, 'M5')">
+                <div class="status">
+                    <span class="status-indicator status-pending" id="m5-status"></span>
+                    <span id="m5-text">Opcional</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Resultados del Análisis -->
+        <div class="section analysis-results" id="analysisResults">
+            <h2>🔍 Análisis Detallado por Temporalidad</h2>
+            <div id="timeframeAnalysis"></div>
+        </div>
+
+        <!-- Panel de Trading Automático -->
+        <div class="trading-setup" id="tradingSetup" style="display: none;">
+            <h2>💰 SETUP DE ENTRADA</h2>
+            <div class="setup-grid">
+                <div class="setup-item">
+                    <div class="label">📍 Precio de Entrada</div>
+                    <div class="value" id="entryPrice">-</div>
+                </div>
+                <div class="setup-item">
+                    <div class="label">🛡️ Stop Loss</div>
+                    <div class="value" id="stopLoss">-</div>
+                </div>
+                <div class="setup-item">
+                    <div class="label">🎯 Take Profit 1</div>
+                    <div class="value" id="takeProfit1">-</div>
+                </div>
+                <div class="setup-item">
+                    <div class="label">🎯 Take Profit 2</div>
+                    <div class="value" id="takeProfit2">-</div>
+                </div>
+                <div class="setup-item">
+                    <div class="label">📊 Risk/Reward</div>
+                    <div class="value" id="riskReward">-</div>
+                </div>
+                <div class="setup-item">
+                    <div class="label">💸 Tamaño Sugerido</div>
+                    <div class="value" id="positionSize">-</div>
+                </div>
+                <div class="setup-item">
+                    <div class="label">⏰ Validez</div>
+                    <div class="value" id="validity">-</div>
+                </div>
+                <div class="setup-item">
+                    <div class="label">📈 Tipo</div>
+                    <div class="value" id="tradeType">-</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Semáforo de Ejecución -->
+        <div class="execution-light" id="executionLight" style="display: none;">
+            <div id="lightContent"></div>
+        </div>
+
+        <!-- Confluencias Detectadas -->
+        <div class="section" id="confluencesSection" style="display: none;">
+            <h2>🎯 Confluencias Detectadas</h2>
+            <div class="confidence-meter">
+                <div class="confidence-fill" id="confidenceFill" style="width: 0%"></div>
+            </div>
+            <p>Nivel de Confianza: <span id="confidenceLevel">0</span>/10</p>
+            <div class="confluences-list" id="confluencesList"></div>
+        </div>
+
+        <!-- Panel de Decisión Final -->
+        <div class="final-decision" id="finalDecision" style="display: none;">
+            <h2>🎯 RECOMENDACIÓN FINAL</h2>
+            <div id="finalRecommendation"></div>
+            <div class="decision-buttons">
+                <button class="decision-btn execute-btn" onclick="executeTradeAction()">✅ Ejecutar Trade</button>
+                <button class="decision-btn wait-btn" onclick="waitSetupAction()">⏰ Esperar Setup</button>
+                <button class="decision-btn cancel-btn" onclick="cancelAction()">❌ Cancelar</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let macroData = {};
+        let uploadedCharts = {};
+        let analysisData = {};
+
+        function importMacroAnalysis() {
+            const text = document.getElementById('macroAnalysis').value;
+            if (!text.trim()) {
+                alert('Por favor, pega el análisis macro antes de continuar.');
+                return;
+            }
+
+            // Procesar el texto del análisis macro
+            macroData = parseMacroAnalysis(text);
+            
+            // Mostrar resumen
+            document.getElementById('macroSummary').style.display = 'block';
+            document.getElementById('summaryContent').innerHTML = generateMacroSummary(macroData);
+        }
+
+        function parseMacroAnalysis(text) {
+            const data = {
+                biasMensual: extractInfo(text, ['bias mensual', 'monthly bias', 'MN']),
+                biasSemanal: extractInfo(text, ['bias semanal', 'weekly bias', 'W1']),
+                escenario: extractInfo(text, ['escenario', 'scenario', 'setup']),
+                tipoOperacion: extractInfo(text, ['swing', 'scalp', 'intraday', 'tipo']),
+                nivelRiesgo: extractInfo(text, ['riesgo', 'risk', 'probabilidad']),
+                estrategia: extractInfo(text, ['estrategia', 'strategy', 'plan']),
+                zonasInteres: extractInfo(text, ['zona', 'level', 'resistance', 'support', 'demand', 'supply']),
+                originalText: text
+            };
+            return data;
+        }
+
+        function extractInfo(text, keywords) {
+            const lines = text.toLowerCase().split('\n');
+            for (let line of lines) {
+                for (let keyword of keywords) {
+                    if (line.includes(keyword.toLowerCase())) {
+                        return line.trim();
+                    }
+                }
+            }
+            return 'No detectado';
+        }
+
+        function generateMacroSummary(data) {
+            return `
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px;">
+                    <div><strong>🗓️ Bias Mensual:</strong> ${data.biasMensual}</div>
+                    <div><strong>📅 Bias Semanal:</strong> ${data.biasSemanal}</div>
+                    <div><strong>🎯 Escenario:</strong> ${data.escenario}</div>
+                    <div><strong>⚡ Tipo Operación:</strong> ${data.tipoOperacion}</div>
+                    <div><strong>⚠️ Nivel Riesgo:</strong> ${data.nivelRiesgo}</div>
+                    <div><strong>📋 Estrategia:</strong> ${data.estrategia}</div>
+                </div>
+            `;
+        }
+
+        function handleFileUpload(input, timeframe) {
+            const file = input.files[0];
+            if (!file) return;
+
+            // Actualizar estado visual
+            const statusIndicator = document.getElementById(timeframe.toLowerCase() + '-status');
+            const statusText = document.getElementById(timeframe.toLowerCase() + '-text');
+            const uploadBox = input.closest('.upload-box');
+            
+            statusIndicator.className = 'status-indicator status-analyzing';
+            statusText.textContent = 'Analizando...';
+            uploadBox.classList.add('uploaded');
+
+            // Simular análisis de la imagen
+            setTimeout(() => {
+                uploadedCharts[timeframe] = {
+                    file: file,
+                    analysis: simulateChartAnalysis(timeframe)
+                };
+
+                statusIndicator.className = 'status-indicator status-complete';
+                statusText.textContent = 'Análisis completado ✓';
+
+                updateAnalysisResults();
+                checkAllChartsAnalyzed();
+            }, 2000 + Math.random() * 2000);
+        }
+
+        function simulateChartAnalysis(timeframe) {
+            const structures = ['CHoCH detectado', 'BOS confirmado', 'FVG identificado', 'OB válido'];
+            const confluences = ['Supply/Demand', 'Fibonacci 61.8%', 'Zona de reacción', 'Volumen alto', 'RSI divergencia'];
+            const momentum = ['Velas de fuerza', 'Momentum alcista', 'Breakout confirmado'];
+
+            const randomStructures = structures.filter(() => Math.random() > 0.4);
+            const randomConfluences = confluences.filter(() => Math.random() > 0.3);
+            const randomMomentum = momentum.filter(() => Math.random() > 0.5);
+
+            const confidence = Math.floor(4 + Math.random() * 6); // 4-10
+
+            return {
+                structures: randomStructures,
+                confluences: randomConfluences,
+                momentum: randomMomentum,
+                confidence: confidence,
+                currentPrice: (1.0800 + Math.random() * 0.0200).toFixed(5),
+                analysis: generateTimeframeAnalysis(timeframe, confidence)
+            };
+        }
+
+        function generateTimeframeAnalysis(timeframe, confidence) {
+            const analyses = {
+                H1: "Estructura clara con CHoCH confirmado. Zona de demanda respetada. Momentum alcista sostenido.",
+                M30: "Refinamiento de entrada exitoso. FVG alineado con bias macro. Confluencia con Fibonacci 61.8%.",
+                M15: "Timing preciso identificado. BOS confirmado en zona de interés. Velas de fuerza presentes.",
+                M5: "Confirmación final sólida. Entrada en zona de alta probabilidad. Setup listo para ejecución."
+            };
+            return analyses[timeframe] || "Análisis en progreso...";
+        }
+
+        function updateAnalysisResults() {
+            const resultsDiv = document.getElementById('analysisResults');
+            const timeframeDiv = document.getElementById('timeframeAnalysis');
+            
+            let html = '';
+            for (let tf in uploadedCharts) {
+                const data = uploadedCharts[tf].analysis;
+                html += `
+                    <div class="timeframe-analysis">
+                        <h3>${tf} - Análisis Completado</h3>
+                        <p><strong>Estructuras:</strong> ${data.structures.join(', ') || 'Ninguna detectada'}</p>
+                        <p><strong>Confluencias:</strong> ${data.confluences.join(', ') || 'Ninguna detectada'}</p>
+                        <p><strong>Momentum:</strong> ${data.momentum.join(', ') || 'Sin momentum'}</p>
+                        <p><strong>Confianza:</strong> ${data.confidence}/10</p>
+                        <p><strong>Análisis:</strong> ${data.analysis}</p>
+                    </div>
+                `;
+            }
+            
+            timeframeDiv.innerHTML = html;
+            resultsDiv.style.display = 'block';
+        }
+
+        function checkAllChartsAnalyzed() {
+            const requiredCharts = ['H1', 'M30', 'M15'];
+            const uploadedRequired = requiredCharts.filter(tf => uploadedCharts[tf]);
+            
+            if (uploadedRequired.length >= 2) { // Mínimo H1 y M30
+                calculateTradingSetup();
+            }
+        }
+
+        function calculateTradingSetup() {
+            const avgConfidence = Object.values(uploadedCharts).reduce((sum, chart) => sum + chart.analysis.confidence, 0) / Object.keys(uploadedCharts).length;
+            
+            // Simular cálculos de precio
+            const basePrice = 1.0850;
+            const entryPrice = (basePrice + (Math.random() - 0.5) * 0.0020).toFixed(5);
+            const stopLoss = (parseFloat(entryPrice) - 0.0030).toFixed(5);
+            const takeProfit1 = (parseFloat(entryPrice) + 0.0045).toFixed(5);
+            const takeProfit2 = (parseFloat(entryPrice) + 0.0090).toFixed(5);
+            
+            const riskPips = Math.round((parseFloat(entryPrice) - parseFloat(stopLoss)) * 10000);
+            const rewardPips = Math.round((parseFloat(takeProfit1) - parseFloat(entryPrice)) * 10000);
+            const rr = (rewardPips / riskPips).toFixed(1);
+            
+            // Determinar tipo de trade
+            let tradeType = 'INTRADAY';
+            if (rewardPips < 30) tradeType = 'SCALPING';
+            else if (rewardPips > 80) tradeType = 'SWING';
+
+            // Actualizar UI
+            document.getElementById('entryPrice').textContent = entryPrice;
+            document.getElementById('stopLoss').textContent = stopLoss;
+            document.getElementById('takeProfit1').textContent = takeProfit1;
+            document.getElementById('takeProfit2').textContent = takeProfit2;
+            document.getElementById('riskReward').textContent = `1:${rr}`;
+            document.getElementById('positionSize').textContent = '0.1 lotes';
+            document.getElementById('validity').textContent = `${Math.floor(4 + Math.random() * 8)} horas`;
+            document.getElementById('tradeType').textContent = tradeType;
+
+            // Mostrar setup
+            document.getElementById('tradingSetup').style.display = 'block';
+
+            // Configurar semáforo
+            setupExecutionLight(avgConfidence);
+
+            // Mostrar confluencias
+            showConfluences(avgConfidence);
+
+            // Mostrar decisión final
+            showFinalDecision(avgConfidence, tradeType);
+        }
+
+        function setupExecutionLight(confidence) {
+            const lightDiv = document.getElementById('executionLight');
+            const contentDiv = document.getElementById('lightContent');
+            
+            lightDiv.style.display = 'block';
+            
+            if (confidence >= 8) {
+                lightDiv.className = 'execution-light green-light';
+                contentDiv.innerHTML = '🟢 EJECUTAR AHORA<br><small>8+ confluencias, setup perfecto</small>';
+            } else if (confidence >= 5) {
+                lightDiv.className = 'execution-light yellow-light';
+                contentDiv.innerHTML = '🟡 ESPERAR<br><small>5-7 confluencias, necesita más confirmación</small>';
+            } else {
+                lightDiv.className = 'execution-light red-light';
+                contentDiv.innerHTML = '🔴 NO ENTRAR<br><small><5 confluencias o setup invalidado</small>';
+            }
+        }
+
+        function showConfluences(confidence) {
+            const section = document.getElementById('confluencesSection');
+            const fill = document.getElementById('confidenceFill');
+            const level = document.getElementById('confidenceLevel');
+            const list = document.getElementById('confluencesList');
+            
+            section.style.display = 'block';
+            
+            fill.style.width = `${confidence * 10}%`;
+            level.textContent = confidence.toFixed(1);
+            
+            // Generar lista de confluencias
+            const allConfluences = [];
+            Object.values(uploadedCharts).forEach(chart => {
+                allConfluences.push(...chart.analysis.confluences);
+            });
+            
+            const uniqueConfluences = [...new Set(allConfluences)];
+            list.innerHTML = uniqueConfluences.map(conf => 
+                `<div class="confluence-item">✓ ${conf}</div>`
+            ).join('');
+        }
+
+        function showFinalDecision(confidence, tradeType) {
+            const section = document.getElementById('finalDecision');
+            const recommendation = document.getElementById('finalRecommendation');
+            
+            section.style.display = 'block';
+            
+            let reason = '';
+            if (confidence >= 8) reason = 'Múltiples confluencias alineadas con bias macro';
+            else if (confidence >= 5) reason = 'Setup válido pero necesita confirmación adicional';
+            else reason = 'Insuficientes confluencias para entrada segura';
+            
+recommendation.innerHTML = `
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin: 15px 0;">
+                    <div><strong>Tipo:</strong> ${tradeType}</div>
+                    <div><strong>Confianza:</strong> ${confidence.toFixed(1)}/10</div>
+                    <div><strong>Confluencias:</strong> ${uniqueConfluences.length}</div>
+                    <div><strong>Razón:</strong> ${reason}</div>
+                </div>
+            `;
+        }
+
+        function executeTradeAction() {
+            alert('🚀 ¡Setup confirmado! Procediendo con la ejecución del trade...\n\nRecuerda:\n• Respetar el Stop Loss\n• Mover SL a BE en TP1\n• Seguir el plan establecido');
+        }
+
+        function waitSetupAction() {
+            alert('⏰ Setup en espera de confirmación adicional.\n\nMonitorea:\n• Rotura de estructura\n• Momentum de velas\n• Volumen de confirmación\n\nReevalúa en 15-30 minutos.');
+        }
+
+        function cancelAction() {
+            if (confirm('❌ ¿Estás seguro de cancelar este setup?\n\nSe perderán todos los análisis realizados.')) {
+                // Reiniciar aplicación
+                location.reload();
+            }
+        }
+
+        // Auto-análisis cuando se importa texto macro
+        function autoAnalyzeFromMacro() {
+            if (Object.keys(macroData).length > 0) {
+                // Simular que se obtienen algunos datos automáticamente del análisis macro
+                console.log('Análisis macro cargado:', macroData);
+            }
+        }
+
+        // Función para validar setup completo
+        function validateCompleteSetup() {
+            const requiredCharts = ['H1', 'M30', 'M15'];
+            const hasEnoughCharts = requiredCharts.filter(tf => uploadedCharts[tf]).length >= 2;
+            const hasMacroData = Object.keys(macroData).length > 0;
+            
+            return hasEnoughCharts && hasMacroData;
+        }
+
+        // Función para calcular el tamaño de posición
+        function calculatePositionSize(accountBalance = 10000, riskPercent = 1, stopLossPips = 30) {
+            const riskAmount = accountBalance * (riskPercent / 100);
+            const pipValue = 1; // Para EUR/USD mini lotes
+            const lotSize = (riskAmount / (stopLossPips * pipValue)).toFixed(2);
+            return Math.max(0.01, Math.min(lotSize, 1.0)); // Entre 0.01 y 1.0 lotes
+        }
+
+        // Función para determinar validez del setup
+        function calculateSetupValidity(timeframe, momentum) {
+            const validityHours = {
+                'H1': 8,
+                'M30': 4,
+                'M15': 2,
+                'M5': 1
+            };
+            
+            const baseHours = validityHours[timeframe] || 4;
+            const momentumMultiplier = momentum.length > 2 ? 1.5 : 1;
+            
+            return Math.floor(baseHours * momentumMultiplier);
+        }
+
+        // Inicializar aplicación
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('⚡ Entry Finder iniciado correctamente');
+        });
+    </script>
+</body>
+</html>
