@@ -402,10 +402,11 @@
         
         <div class="status-bar">
             <div class="api-section">
-                <h4 style="margin-bottom: 10px; color: #ffd700;">Estado de la Conexión</h4>
-                <button class="btn" onclick="connectToAPI()">Conectar con Alpha Vantage</button>
-                <button class="btn" onclick="toggleUpdates()" id="toggleBtn">⏸️ Pausar</button>
-
+                <h4 style="margin-bottom: 10px; color: #ffd700;">Configuración API</h4>
+                <input type="text" id="apiKeyInput" placeholder="Ingresa tu API Key de Alpha Vantage" 
+                       style="width: 300px; padding: 8px; margin-right: 10px; border-radius: 5px; border: 1px solid #ccc; background: rgba(255,255,255,0.1); color: white;">
+                <button class="btn" onclick="connectWithCustomAPI()">Conectar</button>
+                <button class="btn" onclick="toggleUpdates()" id="toggleBtn" style="margin-left: 10px;">⏸️ Pausar</button>
             </div>
             <div class="connection-status disconnected" id="connectionStatus">
                 Desconectado
@@ -535,16 +536,58 @@
     </script>
 
     <script>
-        // Tu API Key de Alpha Vantage
-        const API_KEY = 'Q2586VZ0NLVEC0RA';
+        // API Key de Alpha Vantage - CONFIGURAR ANTES DE USAR
+        let API_KEY = ''; // Dejar vacío por defecto
         let currentTimeframe = '60min';
         let priceData = {};
         let isConnected = false;
         let updateInterval;
         let historicalData = [];
+        let isPaused = false;
 
-        // Conectar a la API automáticamente
+        // Control manual de pausa/reanudación
+        function toggleUpdates() {
+            isPaused = !isPaused;
+            const btn = document.getElementById('toggleBtn');
+            
+            if (isPaused) {
+                if (updateInterval) clearInterval(updateInterval);
+                updateInterval = null;
+                btn.textContent = '▶️ Reanudar';
+                btn.style.background = 'linear-gradient(45deg, #ff6b6b, #ffa500)';
+                showAlert('Actualizaciones pausadas - API protegida', 'success');
+            } else {
+                if (isConnected) {
+                    startRealTimeUpdates();
+                    fetchRealTimeData().then(updateAllDisplays);
+                }
+                btn.textContent = '⏸️ Pausar';
+                btn.style.background = 'linear-gradient(45deg, #00d4ff, #00ff88)';
+                showAlert('Actualizaciones reanudadas', 'success');
+            }
+        }
+
+        // Conectar con API personalizada
+        async function connectWithCustomAPI() {
+            const apiInput = document.getElementById('apiKeyInput');
+            const inputKey = apiInput.value.trim();
+            
+            if (!inputKey) {
+                showAlert('Por favor ingresa tu API Key', 'error');
+                return;
+            }
+            
+            API_KEY = inputKey;
+            await connectToAPI();
+        }
+
+        // Conectar a la API
         async function connectToAPI() {
+            if (!API_KEY) {
+                showAlert('Se requiere una API Key para conectar', 'error');
+                return;
+            }
+            
             try {
                 showLoading('Conectando con Alpha Vantage...');
                 
@@ -727,44 +770,33 @@
             updateIndicatorDisplay('ema', ema20, emaCross,
                 ema20 > ema50 ? 'Golden Cross' : 'Death Cross');
             
-            // Bollinger Bands
+        // Bollinger Bands
             const bb = calculateBollingerBands(prices, 20, 2);
-            const bbPosition = data.current > bb.upper ? 'bearish' : 
-                              data.current < bb.lower ? 'bullish' : 'neutral';
-            updateIndicatorDisplay('bb', ((data.current - bb.lower) / (bb.upper - bb.lower) * 100),
-                bbPosition, bbPosition === 'bearish' ? 'Sobrecomprado' : 
-                           bbPosition === 'bullish' ? 'Sobrevendido' : 'Neutral');
+            const bbPosition = data.current > bb.upper ? 'bearish' : data.current < bb.lower ? 'bullish' : 'neutral';
+            const bbPercent = ((data.current - bb.lower) / (bb.upper - bb.lower)) * 100;
+            updateIndicatorDisplay('bb', bbPercent, bbPosition,
+                data.current > bb.upper ? 'Sobrecomprado' : data.current < bb.lower ? 'Sobrevendido' : 'Normal');
             
             // Stochastic
-            const stoch = calculateStochastic(highs, lows, prices, 14, 3);
-            const stochSignal = stoch > 80 ? 'bearish' : stoch < 20 ? 'bullish' : 'neutral';
-            updateIndicatorDisplay('stoch', stoch, stochSignal,
+            const stoch = calculateStochastic(highs, lows, prices, 14);
+            updateIndicatorDisplay('stoch', stoch, stoch > 80 ? 'bearish' : stoch < 20 ? 'bullish' : 'neutral',
                 stoch > 80 ? 'Sobrecomprado' : stoch < 20 ? 'Sobrevendido' : 'Neutral');
             
-            // ADX
+            // ADX (Average Directional Index)
             const adx = calculateADX(highs, lows, prices, 14);
-            const adxSignal = adx > 25 ? 'bullish' : 'neutral';
-            updateIndicatorDisplay('adx', adx, adxSignal,
+            updateIndicatorDisplay('adx', adx, adx > 25 ? 'bullish' : 'neutral',
                 adx > 25 ? 'Tendencia Fuerte' : 'Tendencia Débil');
         }
 
         // Actualizar display de indicadores
         function updateIndicatorDisplay(indicator, value, signal, signalText) {
-            const valueElement = document.getElementById(`${indicator}Value`);
-            const signalElement = document.getElementById(`${indicator}Signal`);
-            
-            if (valueElement) {
-                valueElement.textContent = typeof value === 'number' ? value.toFixed(2) : value;
-                valueElement.className = `indicator-value ${signal}-indicator`;
-            }
-            
-            if (signalElement) {
-                signalElement.textContent = signalText;
-                signalElement.className = `indicator-signal ${signal}-indicator`;
-            }
+            document.getElementById(`${indicator}Value`).textContent = typeof value === 'number' ? value.toFixed(2) : '--';
+            document.getElementById(`${indicator}Value`).className = `indicator-value ${signal}-indicator`;
+            document.getElementById(`${indicator}Signal`).textContent = signalText;
+            document.getElementById(`${indicator}Signal`).className = `indicator-signal ${signal}-indicator`;
         }
 
-        // Calcular niveles técnicos clave
+        // Niveles técnicos avanzados
         function updateTechnicalLevels(data) {
             const prices = data.closePrices;
             const highs = data.highPrices;
@@ -772,74 +804,89 @@
             
             if (prices.length < 50) return;
             
-            const pivots = calculatePivotPoints(data);
-            const fibLevels = calculateFibonacci(highs, lows);
+            // Pivot Points
+            const pivot = calculatePivotPoints(data.high, data.low, data.current);
             
-            let levelsHtml = '';
+            // Support and Resistance levels
+            const levels = findSupportResistanceLevels(highs, lows, data.current);
             
-            // Resistencias
-            levelsHtml += '<h5 style="color: #ff6b6b; margin-bottom: 10px;">🔴 Resistencias</h5>';
-            levelsHtml += `<div class="level-item resistance">
-                <span>R3 (Pivot)</span><span>${pivots.r3.toFixed(4)}</span>
-            </div>`;
-            levelsHtml += `<div class="level-item resistance">
-                <span>R2 (Pivot)</span><span>${pivots.r2.toFixed(4)}</span>
-            </div>`;
-            levelsHtml += `<div class="level-item resistance">
-                <span>R1 (Pivot)</span><span>${pivots.r1.toFixed(4)}</span>
-            </div>`;
+            let levelsHTML = '';
             
-            // Soportes
-            levelsHtml += '<h5 style="color: #00ff88; margin: 15px 0 10px; ">🟢 Soportes</h5>';
-            levelsHtml += `<div class="level-item support">
-                <span>S1 (Pivot)</span><span>${pivots.s1.toFixed(4)}</span>
-            </div>`;
-            levelsHtml += `<div class="level-item support">
-                <span>S2 (Pivot)</span><span>${pivots.s2.toFixed(4)}</span>
-            </div>`;
-            levelsHtml += `<div class="level-item support">
-                <span>S3 (Pivot)</span><span>${pivots.s3.toFixed(4)}</span>
-            </div>`;
+            // Pivot levels
+            levelsHTML += `
+                <div class="level-item resistance">
+                    <span>🔴 R2 (Pivot)</span>
+                    <span>${pivot.r2.toFixed(4)}</span>
+                </div>
+                <div class="level-item resistance">
+                    <span>🔴 R1 (Pivot)</span>
+                    <span>${pivot.r1.toFixed(4)}</span>
+                </div>
+                <div class="level-item" style="border-left-color: #ffd700; background: rgba(255,215,0,0.1);">
+                    <span>⚪ Pivot Point</span>
+                    <span>${pivot.pp.toFixed(4)}</span>
+                </div>
+                <div class="level-item support">
+                    <span>🟢 S1 (Pivot)</span>
+                    <span>${pivot.s1.toFixed(4)}</span>
+                </div>
+                <div class="level-item support">
+                    <span>🟢 S2 (Pivot)</span>
+                    <span>${pivot.s2.toFixed(4)}</span>
+                </div>
+            `;
             
-            document.getElementById('technicalLevels').innerHTML = levelsHtml;
-        }
-
-        // Generar setups de trading
-        function updateTradingSetups(data) {
-            const setups = generateTradingSetups(data);
-            const container = document.getElementById('setupsContainer');
-            
-            if (setups.length === 0) {
-                container.innerHTML = `
-                    <div class="setup-card setup-neutral">
-                        <div class="setup-title">Sin setups detectados</div>
-                        <div class="setup-details">Esperando condiciones de mercado favorables</div>
+            // Key levels
+            levels.resistance.slice(0, 2).forEach(level => {
+                levelsHTML += `
+                    <div class="level-item resistance">
+                        <span>🔴 Resistencia Clave</span>
+                        <span>${level.toFixed(4)}</span>
                     </div>
                 `;
-                return;
-            }
+            });
             
-            container.innerHTML = setups.map(setup => `
-                <div class="setup-card setup-${setup.type}">
-                    <div class="setup-title">${setup.title}</div>
-                    <div class="setup-details">${setup.description}</div>
-                    <div class="setup-details">
-                        <strong>Entrada:</strong> ${setup.entry}<br>
-                        <strong>Stop Loss:</strong> ${setup.sl}<br>
-                        <strong>Take Profit:</strong> ${setup.tp}
+            levels.support.slice(0, 2).forEach(level => {
+                levelsHTML += `
+                    <div class="level-item support">
+                        <span>🟢 Soporte Clave</span>
+                        <span>${level.toFixed(4)}</span>
                     </div>
-                    <div class="setup-confidence" style="color: ${setup.type === 'bullish' ? '#00ff88' : setup.type === 'bearish' ? '#ff6b6b' : '#ffd700'}">
-                        Confianza: ${setup.confidence}%
-                    </div>
-                </div>
-            `).join('');
+                `;
+            });
+            
+            document.getElementById('technicalLevels').innerHTML = levelsHTML;
         }
 
-        // Generar setups basados en análisis técnico
-        function generateTradingSetups(data) {
+        // Setups de trading avanzados
+        function updateTradingSetups(data) {
+            const setups = analyzeTradingSetups(data);
+            let setupsHTML = '';
+            
+            setups.forEach(setup => {
+                setupsHTML += `
+                    <div class="setup-card setup-${setup.type}">
+                        <div class="setup-title">${setup.name}</div>
+                        <div class="setup-details">${setup.description}</div>
+                        <div class="setup-confidence" style="color: ${setup.type === 'bullish' ? '#00ff88' : setup.type === 'bearish' ? '#ff6b6b' : '#ffd700'};">
+                            Confianza: ${setup.confidence}%
+                        </div>
+                    </div>
+                `;
+            });
+            
+            document.getElementById('setupsContainer').innerHTML = setupsHTML || `
+                <div class="setup-card setup-neutral">
+                    <div class="setup-title">No hay setups activos</div>
+                    <div class="setup-details">Esperando condiciones favorables</div>
+                </div>
+            `;
+        }
+
+        // Análisis de setups de trading
+        function analyzeTradingSetups(data) {
             const setups = [];
             const prices = data.closePrices;
-            const current = data.current;
             
             if (prices.length < 50) return setups;
             
@@ -848,115 +895,74 @@
             const ema20 = calculateEMA(prices, 20);
             const ema50 = calculateEMA(prices, 50);
             const bb = calculateBollingerBands(prices, 20, 2);
-            const pivots = calculatePivotPoints(data);
             
-            // Setup 1: RSI Oversold + MACD Bullish
-            if (rsi < 30 && macd.macd > macd.signal && current > ema20) {
+            // Setup 1: RSI Divergence + MACD Cross
+            if (rsi < 30 && macd.macd > macd.signal && data.current < ema20) {
                 setups.push({
-                    type: 'bullish',
-                    title: '🟢 RSI Sobrevendido + MACD Alcista',
-                    description: 'RSI en zona de sobrevendida con MACD cruzando alcista y precio sobre EMA20',
-                    entry: `${(current + 0.0005).toFixed(4)}`,
-                    sl: `${(current - 0.0020).toFixed(4)}`,
-                    tp: `${(current + 0.0040).toFixed(4)}`,
-                    confidence: 85
+                    name: "🚀 Reversión Alcista",
+                    type: "bullish",
+                    description: "RSI oversold + MACD golden cross. Entrada en ruptura de EMA20.",
+                    confidence: 78
                 });
             }
             
-            // Setup 2: RSI Overbought + MACD Bearish
-            if (rsi > 70 && macd.macd < macd.signal && current < ema20) {
+            // Setup 2: Breakout Setup
+            if (data.current > bb.upper && ema20 > ema50 && rsi > 50) {
                 setups.push({
-                    type: 'bearish',
-                    title: '🔴 RSI Sobrecomprado + MACD Bajista',
-                    description: 'RSI en zona de sobrecompra con MACD cruzando bajista y precio bajo EMA20',
-                    entry: `${(current - 0.0005).toFixed(4)}`,
-                    sl: `${(current + 0.0020).toFixed(4)}`,
-                    tp: `${(current - 0.0040).toFixed(4)}`,
-                    confidence: 85
+                    name: "📈 Breakout Alcista",
+                    type: "bullish",
+                    description: "Precio rompe Bollinger superior con momentum. Tendencia alcista confirmada.",
+                    confidence: 72
                 });
             }
             
-            // Setup 3: Bollinger Bands Bounce
-            if (current <= bb.lower && rsi < 40) {
+            // Setup 3: Pullback to EMA
+            if (data.current > ema20 && data.current < (ema20 * 1.002) && ema20 > ema50 && rsi > 45 && rsi < 65) {
                 setups.push({
-                    type: 'bullish',
-                    title: '🟢 Rebote en Banda Inferior',
-                    description: 'Precio tocando banda inferior de Bollinger con RSI bajista, posible rebote',
-                    entry: `${(current + 0.0003).toFixed(4)}`,
-                    sl: `${(bb.lower - 0.0010).toFixed(4)}`,
-                    tp: `${bb.middle.toFixed(4)}`,
+                    name: "🎯 Pullback a EMA20",
+                    type: "bullish",
+                    description: "Precio testea EMA20 en tendencia alcista. Setup de continuación.",
+                    confidence: 68
+                });
+            }
+            
+            // Setup 4: Bearish Reversal
+            if (rsi > 70 && macd.macd < macd.signal && data.current > ema20) {
+                setups.push({
+                    name: "📉 Reversión Bajista",
+                    type: "bearish",
+                    description: "RSI overbought + MACD death cross. Entrada en ruptura de EMA20.",
                     confidence: 75
                 });
             }
             
-            if (current >= bb.upper && rsi > 60) {
+            // Setup 5: Bollinger Squeeze
+            const bbWidth = ((bb.upper - bb.lower) / bb.middle) * 100;
+            if (bbWidth < 1.5 && Math.abs(ema20 - ema50) / ema20 < 0.005) {
                 setups.push({
-                    type: 'bearish',
-                    title: '🔴 Rechazo en Banda Superior',
-                    description: 'Precio tocando banda superior de Bollinger con RSI alcista, posible rechazo',
-                    entry: `${(current - 0.0003).toFixed(4)}`,
-                    sl: `${(bb.upper + 0.0010).toFixed(4)}`,
-                    tp: `${bb.middle.toFixed(4)}`,
-                    confidence: 75
-                });
-            }
-            
-            // Setup 4: Pivot Point Bounce
-            if (Math.abs(current - pivots.s1) < 0.0010 && rsi < 50) {
-                setups.push({
-                    type: 'bullish',
-                    title: '🟢 Rebote en Soporte Pivot S1',
-                    description: 'Precio cerca del soporte pivot S1 con momentum bajista agotándose',
-                    entry: `${(pivots.s1 + 0.0005).toFixed(4)}`,
-                    sl: `${(pivots.s2).toFixed(4)}`,
-                    tp: `${(pivots.pp).toFixed(4)}`,
-                    confidence: 70
-                });
-            }
-            
-            if (Math.abs(current - pivots.r1) < 0.0010 && rsi > 50) {
-                setups.push({
-                    type: 'bearish',
-                    title: '🔴 Rechazo en Resistencia Pivot R1',
-                    description: 'Precio cerca de la resistencia pivot R1 con momentum alcista debilitándose',
-                    entry: `${(pivots.r1 - 0.0005).toFixed(4)}`,
-                    sl: `${(pivots.r2).toFixed(4)}`,
-                    tp: `${(pivots.pp).toFixed(4)}`,
-                    confidence: 70
-                });
-            }
-            
-            // Setup 5: EMA Crossover
-            if (ema20 > ema50 && prices[prices.length-2] && calculateEMA(prices.slice(0, -1), 20) <= calculateEMA(prices.slice(0, -1), 50)) {
-                setups.push({
-                    type: 'bullish',
-                    title: '🟢 Golden Cross EMA 20/50',
-                    description: 'EMA 20 cruzando por encima de EMA 50, señal alcista de medio plazo',
-                    entry: `${(current + 0.0008).toFixed(4)}`,
-                    sl: `${(ema50 - 0.0015).toFixed(4)}`,
-                    tp: `${(current + 0.0050).toFixed(4)}`,
-                    confidence: 80
+                    name: "💥 Bollinger Squeeze",
+                    type: "neutral",
+                    description: "Baja volatilidad, esperando breakout. Preparar para movimiento explosivo.",
+                    confidence: 65
                 });
             }
             
             return setups;
         }
 
-        // Funciones de cálculo técnico
+        // Funciones de cálculo de indicadores
         function calculateRSI(prices, period) {
-            if (prices.length < period + 1) return 50;
-            
             let gains = 0, losses = 0;
             
-            for (let i = 1; i <= period; i++) {
-                const change = prices[prices.length - i] - prices[prices.length - i - 1];
+            for (let i = prices.length - period; i < prices.length - 1; i++) {
+                const change = prices[i + 1] - prices[i];
                 if (change > 0) gains += change;
                 else losses -= change;
             }
             
             const avgGain = gains / period;
             const avgLoss = losses / period;
-            const rs = avgGain / avgLoss;
+            const rs = avgGain / (avgLoss || 0.0001);
             
             return 100 - (100 / (1 + rs));
         }
@@ -966,25 +972,29 @@
             const ema26 = calculateEMA(prices, 26);
             const macd = ema12 - ema26;
             
-            const macdValues = [];
-            for (let i = 0; i < 9; i++) {
-                const ema12_i = calculateEMA(prices.slice(0, prices.length - i), 12);
-                const ema26_i = calculateEMA(prices.slice(0, prices.length - i), 26);
-                macdValues.unshift(ema12_i - ema26_i);
+            // Simplified signal line (normally would be EMA of MACD)
+            const macdHistory = [];
+            for (let i = Math.max(0, prices.length - 50); i < prices.length; i++) {
+                const slice = prices.slice(Math.max(0, i - 25), i + 1);
+                if (slice.length >= 12) {
+                    const ema12_i = calculateEMA(slice, 12);
+                    const ema26_i = slice.length >= 26 ? calculateEMA(slice, 26) : ema12_i;
+                    macdHistory.push(ema12_i - ema26_i);
+                }
             }
             
-            const signal = calculateEMA(macdValues, 9);
+            const signal = calculateEMA(macdHistory, 9);
             
-            return { macd, signal };
+            return { macd, signal, histogram: macd - signal };
         }
 
         function calculateEMA(prices, period) {
-            if (prices.length < period) return prices[prices.length - 1];
+            if (prices.length < period) return prices[prices.length - 1] || 0;
             
             const multiplier = 2 / (period + 1);
-            let ema = prices[0];
+            let ema = prices[prices.length - period];
             
-            for (let i = 1; i < prices.length; i++) {
+            for (let i = prices.length - period + 1; i < prices.length; i++) {
                 ema = (prices[i] * multiplier) + (ema * (1 - multiplier));
             }
             
@@ -992,7 +1002,7 @@
         }
 
         function calculateSMA(prices, period) {
-            if (prices.length < period) return prices[prices.length - 1];
+            if (prices.length < period) return prices[prices.length - 1] || 0;
             
             const slice = prices.slice(-period);
             return slice.reduce((sum, price) => sum + price, 0) / period;
@@ -1003,157 +1013,127 @@
             const slice = prices.slice(-period);
             
             const variance = slice.reduce((sum, price) => sum + Math.pow(price - sma, 2), 0) / period;
-            const standardDeviation = Math.sqrt(variance);
+            const std = Math.sqrt(variance);
             
             return {
-                upper: sma + (standardDeviation * stdDev),
+                upper: sma + (std * stdDev),
                 middle: sma,
-                lower: sma - (standardDeviation * stdDev)
+                lower: sma - (std * stdDev)
             };
         }
 
-        function calculateStochastic(highs, lows, closes, kPeriod, dPeriod) {
-            if (closes.length < kPeriod) return 50;
+        function calculateStochastic(highs, lows, closes, period) {
+            if (highs.length < period) return 50;
             
-            const recentHighs = highs.slice(-kPeriod);
-            const recentLows = lows.slice(-kPeriod);
+            const recentHighs = highs.slice(-period);
+            const recentLows = lows.slice(-period);
             const currentClose = closes[closes.length - 1];
             
             const highestHigh = Math.max(...recentHighs);
             const lowestLow = Math.min(...recentLows);
             
-            const k = ((currentClose - lowestLow) / (highestHigh - lowestLow)) * 100;
-            
-            // Simplificado: retornamos %K
-            return k;
+            return ((currentClose - lowestLow) / (highestHigh - lowestLow)) * 100;
         }
 
         function calculateADX(highs, lows, closes, period) {
-            if (closes.length < period + 1) return 0;
+            // Simplified ADX calculation
+            let upMoves = 0, downMoves = 0, trueRange = 0;
             
-            // Cálculo simplificado del ADX
-            let trSum = 0, dmPlusSum = 0, dmMinusSum = 0;
-            
-            for (let i = 1; i < Math.min(period + 1, closes.length); i++) {
-                const high = highs[highs.length - i];
-                const low = lows[lows.length - i];
-                const close = closes[closes.length - i];
-                const prevHigh = highs[highs.length - i - 1];
-                const prevLow = lows[lows.length - i - 1];
-                const prevClose = closes[closes.length - i - 1];
+            for (let i = Math.max(1, closes.length - period); i < closes.length; i++) {
+                const upMove = highs[i] - highs[i - 1];
+                const downMove = lows[i - 1] - lows[i];
                 
-                const tr = Math.max(
-                    high - low,
-                    Math.abs(high - prevClose),
-                    Math.abs(low - prevClose)
+                if (upMove > downMove && upMove > 0) upMoves += upMove;
+                if (downMove > upMove && downMove > 0) downMoves += downMove;
+                
+                trueRange += Math.max(
+                    highs[i] - lows[i],
+                    Math.abs(highs[i] - closes[i - 1]),
+                    Math.abs(lows[i] - closes[i - 1])
                 );
-                
-                const dmPlus = high - prevHigh > prevLow - low ? Math.max(high - prevHigh, 0) : 0;
-                const dmMinus = prevLow - low > high - prevHigh ? Math.max(prevLow - low, 0) : 0;
-                
-                trSum += tr;
-                dmPlusSum += dmPlus;
-                dmMinusSum += dmMinus;
             }
             
-            const diPlus = (dmPlusSum / trSum) * 100;
-            const diMinus = (dmMinusSum / trSum) * 100;
-            const dx = Math.abs(diPlus - diMinus) / (diPlus + diMinus) * 100;
+            const avgTR = trueRange / period;
+            const plusDI = (upMoves / period) / avgTR * 100;
+            const minusDI = (downMoves / period) / avgTR * 100;
             
-            return dx || 0;
+            return Math.abs(plusDI - minusDI) / (plusDI + minusDI) * 100;
         }
 
-        function calculatePivotPoints(data) {
-            const high = data.high;
-            const low = data.low;
-            const close = data.current;
-            
+        function calculatePivotPoints(high, low, close) {
             const pp = (high + low + close) / 3;
-            const r1 = (2 * pp) - low;
-            const s1 = (2 * pp) - high;
-            const r2 = pp + (high - low);
-            const s2 = pp - (high - low);
-            const r3 = high + 2 * (pp - low);
-            const s3 = low - 2 * (high - pp);
-            
-            return { pp, r1, r2, r3, s1, s2, s3 };
-        }
-
-        function calculateFibonacci(highs, lows) {
-            const recentHighs = highs.slice(-20);
-            const recentLows = lows.slice(-20);
-            
-            const high = Math.max(...recentHighs);
-            const low = Math.min(...recentLows);
-            const range = high - low;
             
             return {
-                level_0: high,
-                level_236: high - (range * 0.236),
-                level_382: high - (range * 0.382),
-                level_500: high - (range * 0.500),
-                level_618: high - (range * 0.618),
-                level_786: high - (range * 0.786),
-                level_1000: low
+                pp: pp,
+                r1: (2 * pp) - low,
+                r2: pp + (high - low),
+                s1: (2 * pp) - high,
+                s2: pp - (high - low)
             };
         }
 
-        // Funciones de interfaz
+        function findSupportResistanceLevels(highs, lows, currentPrice) {
+            const resistance = [];
+            const support = [];
+            
+            // Find recent significant highs and lows
+            for (let i = 2; i < highs.length - 2; i++) {
+                if (highs[i] > highs[i-1] && highs[i] > highs[i+1] && 
+                    highs[i] > highs[i-2] && highs[i] > highs[i+2]) {
+                    if (highs[i] > currentPrice) resistance.push(highs[i]);
+                }
+                
+                if (lows[i] < lows[i-1] && lows[i] < lows[i+1] && 
+                    lows[i] < lows[i-2] && lows[i] < lows[i+2]) {
+                    if (lows[i] < currentPrice) support.push(lows[i]);
+                }
+            }
+            
+            return {
+                resistance: resistance.sort((a, b) => a - b).slice(0, 3),
+                support: support.sort((a, b) => b - a).slice(0, 3)
+            };
+        }
+
+        // Funciones de utilidad
         function selectTimeframe(tf) {
             document.querySelectorAll('.tf-btn').forEach(btn => btn.classList.remove('active'));
             document.getElementById(`tf-${tf}`).classList.add('active');
             currentTimeframe = tf;
             
-            if (isConnected) {
-                showLoading('Cambiando temporalidad...');
-                setTimeout(() => {
-                    fetchRealTimeData().then(updateAllDisplays);
-                }, 500);
-            }
-        }
-
-        function updateConnectionStatus(connected) {
-            const statusElement = document.getElementById('connectionStatus');
-            if (connected) {
-                statusElement.textContent = 'Conectado';
-                statusElement.className = 'connection-status connected';
-                isConnected = true;
-            } else {
-                statusElement.textContent = 'Desconectado';
-                statusElement.className = 'connection-status disconnected';
-                isConnected = false;
-                if (updateInterval) {
-                    clearInterval(updateInterval);
-                }
+            if (isConnected && !isPaused) {
+                fetchRealTimeData().then(updateAllDisplays);
             }
         }
 
         function startRealTimeUpdates() {
             if (updateInterval) clearInterval(updateInterval);
             
-            // No iniciar si está pausado manualmente
-            if (isPaused) return;
-            
-            updateInterval = setInterval(async () => {
-                // Solo actualizar si la ventana está activa y no está pausado
-                if (document.hidden || isPaused) return;
-                
-                try {
-                    const data = await fetchRealTimeData();
-                    updateAllDisplays(data);
-                } catch (error) {
-                    console.error('Update error:', error);
+            // Update every 30 seconds for real-time data
+            updateInterval = setInterval(() => {
+                if (!isPaused && isConnected) {
+                    fetchRealTimeData().then(updateAllDisplays).catch(error => {
+                        console.error('Update error:', error);
+                    });
                 }
-            }, 60000); // Cambiado a 60 segundos
+            }, 30000);
         }
 
-        function showLoading(message) {
-            document.getElementById('setupsContainer').innerHTML = `
-                <div class="loading">
-                    <div class="spinner"></div>
-                    <p>${message}</p>
-                </div>
-            `;
+        function updateConnectionStatus(connected) {
+            const statusElement = document.getElementById('connectionStatus');
+            if (connected) {
+                statusElement.textContent = 'Conectado ✓';
+                statusElement.className = 'connection-status connected';
+                isConnected = true;
+            } else {
+                statusElement.textContent = 'Desconectado ✗';
+                statusElement.className = 'connection-status disconnected';
+                isConnected = false;
+                if (updateInterval) {
+                    clearInterval(updateInterval);
+                    updateInterval = null;
+                }
+            }
         }
 
         function showAlert(message, type) {
@@ -1168,27 +1148,44 @@
             }, 5000);
         }
 
-        // Inicialización SIN auto-conexión
-        document.addEventListener('DOMContentLoaded', function() {
-            // NO conectar automáticamente - requiere API Key del usuario
+        function showLoading(message) {
+            const existingLoading = document.querySelector('.loading-overlay');
+            if (existingLoading) existingLoading.remove();
             
-            // Pausar actualizaciones cuando la pestaña no está visible
-            document.addEventListener('visibilitychange', function() {
-                if (document.hidden) {
-                    console.log('Pestaña oculta - pausando actualizaciones');
-                    if (updateInterval) {
-                        clearInterval(updateInterval);
-                        updateInterval = null;
-                    }
-                } else {
-                    console.log('Pestaña visible - reanudando actualizaciones');
-                    if (isConnected && !updateInterval) {
-                        startRealTimeUpdates();
-                        // Actualización inmediata al regresar
-                        fetchRealTimeData().then(updateAllDisplays);
-                    }
-                }
-            });
+            const loadingDiv = document.createElement('div');
+            loadingDiv.className = 'loading-overlay';
+            loadingDiv.innerHTML = `
+                <div style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); 
+                           background: rgba(0,0,0,0.8); padding: 30px; border-radius: 15px; text-align: center; z-index: 1000;">
+                    <div class="spinner"></div>
+                    <p>${message}</p>
+                </div>
+            `;
+            document.body.appendChild(loadingDiv);
+            
+            setTimeout(() => {
+                loadingDiv.remove();
+            }, 10000);
+        }
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            updateConnectionStatus(false);
+            
+            // Load TradingView widget
+            setTimeout(() => {
+                const widgetContainer = document.getElementById('tradingview-widget');
+                widgetContainer.innerHTML = `
+                    <div style="height: 100%; width: 100%; position: relative;">
+                        <!-- TradingView Widget -->
+                        <div class="tradingview-widget-container" style="height: 100%;">
+                            <div id="tradingview_chart" style="height: 100%;"></div>
+                        </div>
+                    </div>
+                `;
+            }, 2000);
+            
+            showAlert('🚀 Sistema iniciado. Configura tu API Key para comenzar.', 'success');
         });
     </script>
 </body>
