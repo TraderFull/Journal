@@ -1,0 +1,1208 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analizador Técnico Profesional EUR/USD</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0c0c0c 0%, #1a1a2e 50%, #16213e 100%);
+            min-height: 100vh;
+            color: #fff;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(15px);
+            border-radius: 20px;
+            padding: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2.8rem;
+            background: linear-gradient(45deg, #00d4ff, #00ff88);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-weight: bold;
+        }
+
+        .status-bar {
+            background: rgba(255, 215, 0, 0.1);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 25px;
+            border: 1px solid rgba(255, 215, 0, 0.3);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .api-section {
+            flex: 1;
+        }
+
+        .connection-status {
+            padding: 10px 20px;
+            border-radius: 10px;
+            font-weight: bold;
+            text-align: center;
+            min-width: 150px;
+        }
+
+        .connected {
+            background: rgba(0, 255, 136, 0.2);
+            color: #00ff88;
+            border: 1px solid rgba(0, 255, 136, 0.5);
+        }
+
+        .disconnected {
+            background: rgba(255, 107, 107, 0.2);
+            color: #ff6b6b;
+            border: 1px solid rgba(255, 107, 107, 0.5);
+        }
+
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr 400px;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .chart-section {
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: 15px;
+            padding: 25px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .sidebar {
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: 15px;
+            padding: 25px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .timeframe-selector {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .tf-btn {
+            background: rgba(255, 255, 255, 0.08);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            padding: 12px 18px;
+            border-radius: 12px;
+            color: #fff;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 1rem;
+            font-weight: 600;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .tf-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 212, 255, 0.3);
+        }
+
+        .tf-btn.active {
+            background: linear-gradient(45deg, #00d4ff, #00ff88);
+            color: #000;
+            border-color: transparent;
+        }
+
+        .price-display {
+            background: linear-gradient(135deg, rgba(0, 212, 255, 0.1), rgba(0, 255, 136, 0.1));
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 25px;
+            text-align: center;
+            border: 1px solid rgba(0, 212, 255, 0.3);
+        }
+
+        .current-price {
+            font-size: 3rem;
+            font-weight: bold;
+            color: #00d4ff;
+            text-shadow: 0 0 20px rgba(0, 212, 255, 0.5);
+        }
+
+        .price-change {
+            font-size: 1.4rem;
+            margin-top: 10px;
+            font-weight: 600;
+        }
+
+        .positive { 
+            color: #00ff88; 
+            text-shadow: 0 0 15px rgba(0, 255, 136, 0.5);
+        }
+        .negative { 
+            color: #ff6b6b; 
+            text-shadow: 0 0 15px rgba(255, 107, 107, 0.5);
+        }
+
+        .analysis-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 25px;
+        }
+
+        .analysis-card {
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .card-title {
+            font-size: 1.1rem;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #ffd700;
+        }
+
+        .setup-section {
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 25px;
+        }
+
+        .setup-card {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 15px;
+            border-left: 5px solid;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .setup-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 100px;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.02));
+            pointer-events: none;
+        }
+
+        .setup-bullish { 
+            border-left-color: #00ff88; 
+            background: rgba(0, 255, 136, 0.05);
+        }
+        .setup-bearish { 
+            border-left-color: #ff6b6b; 
+            background: rgba(255, 107, 107, 0.05);
+        }
+        .setup-neutral { 
+            border-left-color: #ffd700; 
+            background: rgba(255, 215, 0, 0.05);
+        }
+
+        .setup-title {
+            font-weight: bold;
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+            color: #fff;
+        }
+
+        .setup-details {
+            font-size: 1rem;
+            opacity: 0.9;
+            line-height: 1.4;
+        }
+
+        .setup-confidence {
+            margin-top: 10px;
+            font-size: 0.9rem;
+            font-weight: bold;
+        }
+
+        .indicators-section {
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: 15px;
+            padding: 25px;
+        }
+
+        .indicator-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+        }
+
+        .indicator-card {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+            transition: transform 0.3s ease;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .indicator-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .indicator-name {
+            font-size: 1rem;
+            margin-bottom: 10px;
+            color: #ccc;
+        }
+
+        .indicator-value {
+            font-size: 2rem;
+            font-weight: bold;
+            margin: 15px 0;
+        }
+
+        .indicator-signal {
+            font-size: 0.9rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .bullish-indicator { 
+            color: #00ff88; 
+            text-shadow: 0 0 15px rgba(0, 255, 136, 0.5);
+        }
+        .bearish-indicator { 
+            color: #ff6b6b; 
+            text-shadow: 0 0 15px rgba(255, 107, 107, 0.5);
+        }
+        .neutral-indicator { 
+            color: #ffd700; 
+            text-shadow: 0 0 15px rgba(255, 215, 0, 0.5);
+        }
+
+        .loading {
+            text-align: center;
+            padding: 30px;
+            color: #00d4ff;
+        }
+
+        .spinner {
+            border: 4px solid rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            border-top: 4px solid #00d4ff;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .btn {
+            background: linear-gradient(45deg, #00d4ff, #00ff88);
+            color: #000;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 212, 255, 0.4);
+        }
+
+        .tradingview-widget {
+            width: 100%;
+            height: 600px;
+            border-radius: 15px;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .level-item {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-left: 4px solid;
+        }
+
+        .support { border-left-color: #00ff88; }
+        .resistance { border-left-color: #ff6b6b; }
+
+        .alert {
+            padding: 15px;
+            border-radius: 10px;
+            margin: 15px 0;
+            font-weight: 600;
+        }
+
+        .alert-success {
+            background: rgba(0, 255, 136, 0.1);
+            border: 1px solid rgba(0, 255, 136, 0.3);
+            color: #00ff88;
+        }
+
+        .alert-error {
+            background: rgba(255, 107, 107, 0.1);
+            border: 1px solid rgba(255, 107, 107, 0.3);
+            color: #ff6b6b;
+        }
+
+        @media (max-width: 768px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .analysis-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .indicator-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+            
+            .current-price {
+                font-size: 2.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 Analizador Técnico Profesional EUR/USD</h1>
+        
+        <div class="status-bar">
+            <div class="api-section">
+                <h4 style="margin-bottom: 10px; color: #ffd700;">Estado de la Conexión</h4>
+                <button class="btn" onclick="connectToAPI()">Conectar con Alpha Vantage</button>
+                <button class="btn" onclick="toggleUpdates()" id="toggleBtn">⏸️ Pausar</button>
+
+            </div>
+            <div class="connection-status disconnected" id="connectionStatus">
+                Desconectado
+            </div>
+        </div>
+        
+        <div class="main-grid">
+            <div class="chart-section">
+                <div class="timeframe-selector">
+                    <button class="tf-btn" onclick="selectTimeframe('1min')" id="tf-1min">1M</button>
+                    <button class="tf-btn" onclick="selectTimeframe('5min')" id="tf-5min">5M</button>
+                    <button class="tf-btn" onclick="selectTimeframe('15min')" id="tf-15min">15M</button>
+                    <button class="tf-btn active" onclick="selectTimeframe('60min')" id="tf-60min">1H</button>
+                    <button class="tf-btn" onclick="selectTimeframe('daily')" id="tf-daily">1D</button>
+                </div>
+
+                <div class="tradingview-widget" id="tradingview-widget">
+                    <div style="height: 100%; width: 100%; background: rgba(255,255,255,0.05); display: flex; align-items: center; justify-content: center; border-radius: 15px;">
+                        <div style="text-align: center;">
+                            <div class="spinner"></div>
+                            <p>Cargando gráfico avanzado...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="sidebar">
+                <div class="price-display">
+                    <div class="current-price" id="currentPrice">--</div>
+                    <div class="price-change" id="priceChange">Esperando conexión...</div>
+                    <div style="margin-top: 15px; font-size: 0.95rem; opacity: 0.8;" id="lastUpdate">--</div>
+                </div>
+
+                <div class="analysis-grid">
+                    <div class="analysis-card">
+                        <div class="card-title">📈 Dirección Principal</div>
+                        <div id="mainDirection" style="font-size: 1.2rem; font-weight: bold;">--</div>
+                    </div>
+                    <div class="analysis-card">
+                        <div class="card-title">📊 Tipo de Movimiento</div>
+                        <div id="movementType" style="font-size: 1.2rem; font-weight: bold;">--</div>
+                    </div>
+                </div>
+
+                <div class="analysis-card">
+                    <div class="card-title">🎯 Niveles Clave</div>
+                    <div id="technicalLevels">
+                        <div class="loading">
+                            <div class="spinner"></div>
+                            <p>Calculando niveles...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="setup-section">
+            <h3 style="margin-bottom: 25px; color: #00ff88; font-size: 1.5rem;">🔥 Setups de Trading</h3>
+            <div id="setupsContainer">
+                <div class="setup-card setup-neutral">
+                    <div class="setup-title">Sin datos disponibles</div>
+                    <div class="setup-details">Conecta la API para obtener setups en tiempo real</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="indicators-section">
+            <h3 style="margin-bottom: 25px; color: #00ff88; font-size: 1.5rem;">📊 Indicadores Técnicos</h3>
+            <div class="indicator-grid" id="indicatorGrid">
+                <div class="indicator-card">
+                    <div class="indicator-name">RSI (14)</div>
+                    <div class="indicator-value neutral-indicator" id="rsiValue">--</div>
+                    <div class="indicator-signal" id="rsiSignal">--</div>
+                </div>
+                <div class="indicator-card">
+                    <div class="indicator-name">MACD</div>
+                    <div class="indicator-value neutral-indicator" id="macdValue">--</div>
+                    <div class="indicator-signal" id="macdSignal">--</div>
+                </div>
+                <div class="indicator-card">
+                    <div class="indicator-name">EMA 20/50</div>
+                    <div class="indicator-value neutral-indicator" id="emaValue">--</div>
+                    <div class="indicator-signal" id="emaSignal">--</div>
+                </div>
+                <div class="indicator-card">
+                    <div class="indicator-name">Bollinger Bands</div>
+                    <div class="indicator-value neutral-indicator" id="bbValue">--</div>
+                    <div class="indicator-signal" id="bbSignal">--</div>
+                </div>
+                <div class="indicator-card">
+                    <div class="indicator-name">Stochastic</div>
+                    <div class="indicator-value neutral-indicator" id="stochValue">--</div>
+                    <div class="indicator-signal" id="stochSignal">--</div>
+                </div>
+                <div class="indicator-card">
+                    <div class="indicator-name">ADX</div>
+                    <div class="indicator-value neutral-indicator" id="adxValue">--</div>
+                    <div class="indicator-signal" id="adxSignal">--</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- TradingView Advanced Chart -->
+    <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js" async>
+    {
+        "autosize": true,
+        "symbol": "FX:EURUSD",
+        "interval": "60",
+        "timezone": "Etc/UTC",
+        "theme": "dark",
+        "style": "1",
+        "locale": "es",
+        "toolbar_bg": "#f1f3f6",
+        "enable_publishing": false,
+        "allow_symbol_change": false,
+        "details": true,
+        "hotlist": true,
+        "calendar": true,
+        "studies": [
+            "RSI@tv-basicstudies",
+            "MACD@tv-basicstudies",
+            "BB@tv-basicstudies"
+        ],
+        "container_id": "tradingview-widget"
+    }
+    </script>
+
+    <script>
+        // Tu API Key de Alpha Vantage
+        const API_KEY = 'Q2586VZ0NLVEC0RA';
+        let currentTimeframe = '60min';
+        let priceData = {};
+        let isConnected = false;
+        let updateInterval;
+        let historicalData = [];
+
+        // Conectar a la API automáticamente
+        async function connectToAPI() {
+            try {
+                showLoading('Conectando con Alpha Vantage...');
+                
+                const testData = await fetchRealTimeData();
+                
+                if (testData && testData.current) {
+                    isConnected = true;
+                    updateConnectionStatus(true);
+                    showAlert('API conectada exitosamente', 'success');
+                    startRealTimeUpdates();
+                    updateAllDisplays(testData);
+                } else {
+                    throw new Error('No se pudieron obtener datos válidos');
+                }
+                
+            } catch (error) {
+                updateConnectionStatus(false);
+                showAlert(`Error de conexión: ${error.message}`, 'error');
+                console.error('API Error:', error);
+            }
+        }
+
+        // Obtener datos en tiempo real de Alpha Vantage
+        async function fetchRealTimeData() {
+            const function_type = currentTimeframe === 'daily' ? 'FX_DAILY' : 'FX_INTRADAY';
+            const intervalParam = currentTimeframe !== 'daily' ? `&interval=${currentTimeframe}` : '';
+            
+            const url = `https://www.alphavantage.co/query?function=${function_type}&from_symbol=EUR&to_symbol=USD${intervalParam}&apikey=${API_KEY}&outputsize=full`;
+            
+            try {
+                const response = await fetch(url);
+                const data = await response.json();
+                
+                if (data['Error Message']) {
+                    throw new Error('API Key inválida o símbolo no encontrado');
+                }
+                
+                if (data['Note']) {
+                    throw new Error('Límite de llamadas excedido. Espera 1 minuto.');
+                }
+                
+                const timeSeriesKey = currentTimeframe === 'daily' ? 
+                    'Time Series FX (Daily)' : 
+                    `Time Series FX (${currentTimeframe})`;
+                
+                const timeSeries = data[timeSeriesKey];
+                if (!timeSeries) {
+                    throw new Error('No se encontraron datos de series temporales');
+                }
+                
+                return processAdvancedTimeSeriesData(timeSeries);
+                
+            } catch (error) {
+                console.error('Fetch error:', error);
+                throw error;
+            }
+        }
+
+        // Procesamiento avanzado de datos
+        function processAdvancedTimeSeriesData(timeSeries) {
+            const entries = Object.entries(timeSeries);
+            const latest = entries[0];
+            const previous = entries[1];
+            
+            if (!latest || !previous) {
+                throw new Error('Datos insuficientes');
+            }
+            
+            const currentPrice = parseFloat(latest[1]['4. close']);
+            const previousPrice = parseFloat(previous[1]['4. close']);
+            const openPrice = parseFloat(latest[1]['1. open']);
+            const highPrice = parseFloat(latest[1]['2. high']);
+            const lowPrice = parseFloat(latest[1]['3. low']);
+            
+            const change = currentPrice - previousPrice;
+            const changePercent = (change / previousPrice) * 100;
+            
+            // Obtener más datos históricos para análisis técnico
+            const prices = entries.slice(0, 200).map(entry => ({
+                close: parseFloat(entry[1]['4. close']),
+                open: parseFloat(entry[1]['1. open']),
+                high: parseFloat(entry[1]['2. high']),
+                low: parseFloat(entry[1]['3. low']),
+                timestamp: entry[0]
+            })).reverse();
+            
+            historicalData = prices;
+            
+            return {
+                current: currentPrice,
+                change: change,
+                changePercent: changePercent,
+                open: openPrice,
+                high: highPrice,
+                low: lowPrice,
+                timestamp: latest[0],
+                prices: prices,
+                closePrices: prices.map(p => p.close),
+                highPrices: prices.map(p => p.high),
+                lowPrices: prices.map(p => p.low)
+            };
+        }
+
+        // Actualizar todas las pantallas
+        function updateAllDisplays(data) {
+            updatePriceDisplay(data);
+            updateTechnicalIndicators(data);
+            updateTechnicalLevels(data);
+            updateTradingSetups(data);
+            updateDirectionalAnalysis(data);
+        }
+
+        // Actualizar visualización de precios
+        function updatePriceDisplay(data) {
+            document.getElementById('currentPrice').textContent = data.current.toFixed(4);
+            
+            const changeElement = document.getElementById('priceChange');
+            const sign = data.change >= 0 ? '+' : '';
+            changeElement.textContent = `${sign}${data.change.toFixed(4)} (${sign}${data.changePercent.toFixed(2)}%)`;
+            changeElement.className = `price-change ${data.change >= 0 ? 'positive' : 'negative'}`;
+            
+            document.getElementById('lastUpdate').textContent = `Actualizado: ${new Date().toLocaleTimeString('es-ES')}`;
+        }
+
+        // Análisis direccional avanzado
+        function updateDirectionalAnalysis(data) {
+            const prices = data.closePrices;
+            if (prices.length < 50) return;
+            
+            // Análisis de tendencia múltiple temporalidad
+            const ema20 = calculateEMA(prices, 20);
+            const ema50 = calculateEMA(prices, 50);
+            const sma200 = calculateSMA(prices, 200);
+            
+            let mainDirection = 'Lateral';
+            let movementType = 'Consolidación';
+            
+            // Determinar dirección principal
+            if (data.current > ema20 && ema20 > ema50 && ema50 > sma200) {
+                mainDirection = '🟢 Alcista Fuerte';
+                movementType = data.current > prices[prices.length - 5] ? 'Impulso' : 'Retroceso';
+            } else if (data.current < ema20 && ema20 < ema50 && ema50 < sma200) {
+                mainDirection = '🔴 Bajista Fuerte';
+                movementType = data.current < prices[prices.length - 5] ? 'Impulso' : 'Retroceso';
+            } else if (data.current > ema20 && ema20 > ema50) {
+                mainDirection = '🟡 Alcista Moderado';
+                movementType = 'Corrección';
+            } else if (data.current < ema20 && ema20 < ema50) {
+                mainDirection = '🟠 Bajista Moderado';
+                movementType = 'Corrección';
+            }
+            
+            document.getElementById('mainDirection').innerHTML = mainDirection;
+            document.getElementById('movementType').innerHTML = movementType;
+        }
+
+        // Indicadores técnicos avanzados
+        function updateTechnicalIndicators(data) {
+            const prices = data.closePrices;
+            const highs = data.highPrices;
+            const lows = data.lowPrices;
+            
+            if (prices.length < 50) return;
+            
+            // RSI
+            const rsi = calculateRSI(prices, 14);
+            updateIndicatorDisplay('rsi', rsi, rsi > 70 ? 'bearish' : rsi < 30 ? 'bullish' : 'neutral',
+                rsi > 70 ? 'Sobrecomprado' : rsi < 30 ? 'Sobrevendido' : 'Neutral');
+            
+            // MACD
+            const macd = calculateMACD(prices);
+            const macdSignal = macd.macd > macd.signal ? 'bullish' : 'bearish';
+            updateIndicatorDisplay('macd', macd.macd, macdSignal,
+                macd.macd > macd.signal ? 'Alcista' : 'Bajista');
+            
+            // EMA 20/50 Crossover
+            const ema20 = calculateEMA(prices, 20);
+            const ema50 = calculateEMA(prices, 50);
+            const emaCross = ema20 > ema50 ? 'bullish' : 'bearish';
+            updateIndicatorDisplay('ema', ema20, emaCross,
+                ema20 > ema50 ? 'Golden Cross' : 'Death Cross');
+            
+            // Bollinger Bands
+            const bb = calculateBollingerBands(prices, 20, 2);
+            const bbPosition = data.current > bb.upper ? 'bearish' : 
+                              data.current < bb.lower ? 'bullish' : 'neutral';
+            updateIndicatorDisplay('bb', ((data.current - bb.lower) / (bb.upper - bb.lower) * 100),
+                bbPosition, bbPosition === 'bearish' ? 'Sobrecomprado' : 
+                           bbPosition === 'bullish' ? 'Sobrevendido' : 'Neutral');
+            
+            // Stochastic
+            const stoch = calculateStochastic(highs, lows, prices, 14, 3);
+            const stochSignal = stoch > 80 ? 'bearish' : stoch < 20 ? 'bullish' : 'neutral';
+            updateIndicatorDisplay('stoch', stoch, stochSignal,
+                stoch > 80 ? 'Sobrecomprado' : stoch < 20 ? 'Sobrevendido' : 'Neutral');
+            
+            // ADX
+            const adx = calculateADX(highs, lows, prices, 14);
+            const adxSignal = adx > 25 ? 'bullish' : 'neutral';
+            updateIndicatorDisplay('adx', adx, adxSignal,
+                adx > 25 ? 'Tendencia Fuerte' : 'Tendencia Débil');
+        }
+
+        // Actualizar display de indicadores
+        function updateIndicatorDisplay(indicator, value, signal, signalText) {
+            const valueElement = document.getElementById(`${indicator}Value`);
+            const signalElement = document.getElementById(`${indicator}Signal`);
+            
+            if (valueElement) {
+                valueElement.textContent = typeof value === 'number' ? value.toFixed(2) : value;
+                valueElement.className = `indicator-value ${signal}-indicator`;
+            }
+            
+            if (signalElement) {
+                signalElement.textContent = signalText;
+                signalElement.className = `indicator-signal ${signal}-indicator`;
+            }
+        }
+
+        // Calcular niveles técnicos clave
+        function updateTechnicalLevels(data) {
+            const prices = data.closePrices;
+            const highs = data.highPrices;
+            const lows = data.lowPrices;
+            
+            if (prices.length < 50) return;
+            
+            const pivots = calculatePivotPoints(data);
+            const fibLevels = calculateFibonacci(highs, lows);
+            
+            let levelsHtml = '';
+            
+            // Resistencias
+            levelsHtml += '<h5 style="color: #ff6b6b; margin-bottom: 10px;">🔴 Resistencias</h5>';
+            levelsHtml += `<div class="level-item resistance">
+                <span>R3 (Pivot)</span><span>${pivots.r3.toFixed(4)}</span>
+            </div>`;
+            levelsHtml += `<div class="level-item resistance">
+                <span>R2 (Pivot)</span><span>${pivots.r2.toFixed(4)}</span>
+            </div>`;
+            levelsHtml += `<div class="level-item resistance">
+                <span>R1 (Pivot)</span><span>${pivots.r1.toFixed(4)}</span>
+            </div>`;
+            
+            // Soportes
+            levelsHtml += '<h5 style="color: #00ff88; margin: 15px 0 10px; ">🟢 Soportes</h5>';
+            levelsHtml += `<div class="level-item support">
+                <span>S1 (Pivot)</span><span>${pivots.s1.toFixed(4)}</span>
+            </div>`;
+            levelsHtml += `<div class="level-item support">
+                <span>S2 (Pivot)</span><span>${pivots.s2.toFixed(4)}</span>
+            </div>`;
+            levelsHtml += `<div class="level-item support">
+                <span>S3 (Pivot)</span><span>${pivots.s3.toFixed(4)}</span>
+            </div>`;
+            
+            document.getElementById('technicalLevels').innerHTML = levelsHtml;
+        }
+
+        // Generar setups de trading
+        function updateTradingSetups(data) {
+            const setups = generateTradingSetups(data);
+            const container = document.getElementById('setupsContainer');
+            
+            if (setups.length === 0) {
+                container.innerHTML = `
+                    <div class="setup-card setup-neutral">
+                        <div class="setup-title">Sin setups detectados</div>
+                        <div class="setup-details">Esperando condiciones de mercado favorables</div>
+                    </div>
+                `;
+                return;
+            }
+            
+            container.innerHTML = setups.map(setup => `
+                <div class="setup-card setup-${setup.type}">
+                    <div class="setup-title">${setup.title}</div>
+                    <div class="setup-details">${setup.description}</div>
+                    <div class="setup-details">
+                        <strong>Entrada:</strong> ${setup.entry}<br>
+                        <strong>Stop Loss:</strong> ${setup.sl}<br>
+                        <strong>Take Profit:</strong> ${setup.tp}
+                    </div>
+                    <div class="setup-confidence" style="color: ${setup.type === 'bullish' ? '#00ff88' : setup.type === 'bearish' ? '#ff6b6b' : '#ffd700'}">
+                        Confianza: ${setup.confidence}%
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Generar setups basados en análisis técnico
+        function generateTradingSetups(data) {
+            const setups = [];
+            const prices = data.closePrices;
+            const current = data.current;
+            
+            if (prices.length < 50) return setups;
+            
+            const rsi = calculateRSI(prices, 14);
+            const macd = calculateMACD(prices);
+            const ema20 = calculateEMA(prices, 20);
+            const ema50 = calculateEMA(prices, 50);
+            const bb = calculateBollingerBands(prices, 20, 2);
+            const pivots = calculatePivotPoints(data);
+            
+            // Setup 1: RSI Oversold + MACD Bullish
+            if (rsi < 30 && macd.macd > macd.signal && current > ema20) {
+                setups.push({
+                    type: 'bullish',
+                    title: '🟢 RSI Sobrevendido + MACD Alcista',
+                    description: 'RSI en zona de sobrevendida con MACD cruzando alcista y precio sobre EMA20',
+                    entry: `${(current + 0.0005).toFixed(4)}`,
+                    sl: `${(current - 0.0020).toFixed(4)}`,
+                    tp: `${(current + 0.0040).toFixed(4)}`,
+                    confidence: 85
+                });
+            }
+            
+            // Setup 2: RSI Overbought + MACD Bearish
+            if (rsi > 70 && macd.macd < macd.signal && current < ema20) {
+                setups.push({
+                    type: 'bearish',
+                    title: '🔴 RSI Sobrecomprado + MACD Bajista',
+                    description: 'RSI en zona de sobrecompra con MACD cruzando bajista y precio bajo EMA20',
+                    entry: `${(current - 0.0005).toFixed(4)}`,
+                    sl: `${(current + 0.0020).toFixed(4)}`,
+                    tp: `${(current - 0.0040).toFixed(4)}`,
+                    confidence: 85
+                });
+            }
+            
+            // Setup 3: Bollinger Bands Bounce
+            if (current <= bb.lower && rsi < 40) {
+                setups.push({
+                    type: 'bullish',
+                    title: '🟢 Rebote en Banda Inferior',
+                    description: 'Precio tocando banda inferior de Bollinger con RSI bajista, posible rebote',
+                    entry: `${(current + 0.0003).toFixed(4)}`,
+                    sl: `${(bb.lower - 0.0010).toFixed(4)}`,
+                    tp: `${bb.middle.toFixed(4)}`,
+                    confidence: 75
+                });
+            }
+            
+            if (current >= bb.upper && rsi > 60) {
+                setups.push({
+                    type: 'bearish',
+                    title: '🔴 Rechazo en Banda Superior',
+                    description: 'Precio tocando banda superior de Bollinger con RSI alcista, posible rechazo',
+                    entry: `${(current - 0.0003).toFixed(4)}`,
+                    sl: `${(bb.upper + 0.0010).toFixed(4)}`,
+                    tp: `${bb.middle.toFixed(4)}`,
+                    confidence: 75
+                });
+            }
+            
+            // Setup 4: Pivot Point Bounce
+            if (Math.abs(current - pivots.s1) < 0.0010 && rsi < 50) {
+                setups.push({
+                    type: 'bullish',
+                    title: '🟢 Rebote en Soporte Pivot S1',
+                    description: 'Precio cerca del soporte pivot S1 con momentum bajista agotándose',
+                    entry: `${(pivots.s1 + 0.0005).toFixed(4)}`,
+                    sl: `${(pivots.s2).toFixed(4)}`,
+                    tp: `${(pivots.pp).toFixed(4)}`,
+                    confidence: 70
+                });
+            }
+            
+            if (Math.abs(current - pivots.r1) < 0.0010 && rsi > 50) {
+                setups.push({
+                    type: 'bearish',
+                    title: '🔴 Rechazo en Resistencia Pivot R1',
+                    description: 'Precio cerca de la resistencia pivot R1 con momentum alcista debilitándose',
+                    entry: `${(pivots.r1 - 0.0005).toFixed(4)}`,
+                    sl: `${(pivots.r2).toFixed(4)}`,
+                    tp: `${(pivots.pp).toFixed(4)}`,
+                    confidence: 70
+                });
+            }
+            
+            // Setup 5: EMA Crossover
+            if (ema20 > ema50 && prices[prices.length-2] && calculateEMA(prices.slice(0, -1), 20) <= calculateEMA(prices.slice(0, -1), 50)) {
+                setups.push({
+                    type: 'bullish',
+                    title: '🟢 Golden Cross EMA 20/50',
+                    description: 'EMA 20 cruzando por encima de EMA 50, señal alcista de medio plazo',
+                    entry: `${(current + 0.0008).toFixed(4)}`,
+                    sl: `${(ema50 - 0.0015).toFixed(4)}`,
+                    tp: `${(current + 0.0050).toFixed(4)}`,
+                    confidence: 80
+                });
+            }
+            
+            return setups;
+        }
+
+        // Funciones de cálculo técnico
+        function calculateRSI(prices, period) {
+            if (prices.length < period + 1) return 50;
+            
+            let gains = 0, losses = 0;
+            
+            for (let i = 1; i <= period; i++) {
+                const change = prices[prices.length - i] - prices[prices.length - i - 1];
+                if (change > 0) gains += change;
+                else losses -= change;
+            }
+            
+            const avgGain = gains / period;
+            const avgLoss = losses / period;
+            const rs = avgGain / avgLoss;
+            
+            return 100 - (100 / (1 + rs));
+        }
+
+        function calculateMACD(prices) {
+            const ema12 = calculateEMA(prices, 12);
+            const ema26 = calculateEMA(prices, 26);
+            const macd = ema12 - ema26;
+            
+            const macdValues = [];
+            for (let i = 0; i < 9; i++) {
+                const ema12_i = calculateEMA(prices.slice(0, prices.length - i), 12);
+                const ema26_i = calculateEMA(prices.slice(0, prices.length - i), 26);
+                macdValues.unshift(ema12_i - ema26_i);
+            }
+            
+            const signal = calculateEMA(macdValues, 9);
+            
+            return { macd, signal };
+        }
+
+        function calculateEMA(prices, period) {
+            if (prices.length < period) return prices[prices.length - 1];
+            
+            const multiplier = 2 / (period + 1);
+            let ema = prices[0];
+            
+            for (let i = 1; i < prices.length; i++) {
+                ema = (prices[i] * multiplier) + (ema * (1 - multiplier));
+            }
+            
+            return ema;
+        }
+
+        function calculateSMA(prices, period) {
+            if (prices.length < period) return prices[prices.length - 1];
+            
+            const slice = prices.slice(-period);
+            return slice.reduce((sum, price) => sum + price, 0) / period;
+        }
+
+        function calculateBollingerBands(prices, period, stdDev) {
+            const sma = calculateSMA(prices, period);
+            const slice = prices.slice(-period);
+            
+            const variance = slice.reduce((sum, price) => sum + Math.pow(price - sma, 2), 0) / period;
+            const standardDeviation = Math.sqrt(variance);
+            
+            return {
+                upper: sma + (standardDeviation * stdDev),
+                middle: sma,
+                lower: sma - (standardDeviation * stdDev)
+            };
+        }
+
+        function calculateStochastic(highs, lows, closes, kPeriod, dPeriod) {
+            if (closes.length < kPeriod) return 50;
+            
+            const recentHighs = highs.slice(-kPeriod);
+            const recentLows = lows.slice(-kPeriod);
+            const currentClose = closes[closes.length - 1];
+            
+            const highestHigh = Math.max(...recentHighs);
+            const lowestLow = Math.min(...recentLows);
+            
+            const k = ((currentClose - lowestLow) / (highestHigh - lowestLow)) * 100;
+            
+            // Simplificado: retornamos %K
+            return k;
+        }
+
+        function calculateADX(highs, lows, closes, period) {
+            if (closes.length < period + 1) return 0;
+            
+            // Cálculo simplificado del ADX
+            let trSum = 0, dmPlusSum = 0, dmMinusSum = 0;
+            
+            for (let i = 1; i < Math.min(period + 1, closes.length); i++) {
+                const high = highs[highs.length - i];
+                const low = lows[lows.length - i];
+                const close = closes[closes.length - i];
+                const prevHigh = highs[highs.length - i - 1];
+                const prevLow = lows[lows.length - i - 1];
+                const prevClose = closes[closes.length - i - 1];
+                
+                const tr = Math.max(
+                    high - low,
+                    Math.abs(high - prevClose),
+                    Math.abs(low - prevClose)
+                );
+                
+                const dmPlus = high - prevHigh > prevLow - low ? Math.max(high - prevHigh, 0) : 0;
+                const dmMinus = prevLow - low > high - prevHigh ? Math.max(prevLow - low, 0) : 0;
+                
+                trSum += tr;
+                dmPlusSum += dmPlus;
+                dmMinusSum += dmMinus;
+            }
+            
+            const diPlus = (dmPlusSum / trSum) * 100;
+            const diMinus = (dmMinusSum / trSum) * 100;
+            const dx = Math.abs(diPlus - diMinus) / (diPlus + diMinus) * 100;
+            
+            return dx || 0;
+        }
+
+        function calculatePivotPoints(data) {
+            const high = data.high;
+            const low = data.low;
+            const close = data.current;
+            
+            const pp = (high + low + close) / 3;
+            const r1 = (2 * pp) - low;
+            const s1 = (2 * pp) - high;
+            const r2 = pp + (high - low);
+            const s2 = pp - (high - low);
+            const r3 = high + 2 * (pp - low);
+            const s3 = low - 2 * (high - pp);
+            
+            return { pp, r1, r2, r3, s1, s2, s3 };
+        }
+
+        function calculateFibonacci(highs, lows) {
+            const recentHighs = highs.slice(-20);
+            const recentLows = lows.slice(-20);
+            
+            const high = Math.max(...recentHighs);
+            const low = Math.min(...recentLows);
+            const range = high - low;
+            
+            return {
+                level_0: high,
+                level_236: high - (range * 0.236),
+                level_382: high - (range * 0.382),
+                level_500: high - (range * 0.500),
+                level_618: high - (range * 0.618),
+                level_786: high - (range * 0.786),
+                level_1000: low
+            };
+        }
+
+        // Funciones de interfaz
+        function selectTimeframe(tf) {
+            document.querySelectorAll('.tf-btn').forEach(btn => btn.classList.remove('active'));
+            document.getElementById(`tf-${tf}`).classList.add('active');
+            currentTimeframe = tf;
+            
+            if (isConnected) {
+                showLoading('Cambiando temporalidad...');
+                setTimeout(() => {
+                    fetchRealTimeData().then(updateAllDisplays);
+                }, 500);
+            }
+        }
+
+        function updateConnectionStatus(connected) {
+            const statusElement = document.getElementById('connectionStatus');
+            if (connected) {
+                statusElement.textContent = 'Conectado';
+                statusElement.className = 'connection-status connected';
+                isConnected = true;
+            } else {
+                statusElement.textContent = 'Desconectado';
+                statusElement.className = 'connection-status disconnected';
+                isConnected = false;
+                if (updateInterval) {
+                    clearInterval(updateInterval);
+                }
+            }
+        }
+
+        function startRealTimeUpdates() {
+            if (updateInterval) clearInterval(updateInterval);
+            
+            updateInterval = setInterval(async () => {
+                // Solo actualizar si la ventana está activa
+                if (document.hidden) return;
+                
+                try {
+                    const data = await fetchRealTimeData();
+                    updateAllDisplays(data);
+                } catch (error) {
+                    console.error('Update error:', error);
+                }
+            }, 60000); // Cambiado a 60 segundos
+        }
+
+        function showLoading(message) {
+            document.getElementById('setupsContainer').innerHTML = `
+                <div class="loading">
+                    <div class="spinner"></div>
+                    <p>${message}</p>
+                </div>
+            `;
+        }
+
+        function showAlert(message, type) {
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert alert-${type}`;
+            alertDiv.textContent = message;
+            
+            document.querySelector('.container').insertBefore(alertDiv, document.querySelector('.main-grid'));
+            
+            setTimeout(() => {
+                alertDiv.remove();
+            }, 5000);
+        }
+      
+let isPaused = false;
+function toggleUpdates() {
+    isPaused = !isPaused;
+    const btn = document.getElementById('toggleBtn');
+    
+    if (isPaused) {
+        clearInterval(updateInterval);
+        btn.textContent = '▶️ Reanudar';
+    } else {
+        startRealTimeUpdates();
+        btn.textContent = '⏸️ Pausar';
+    }
+}
+
+
+      
+        // Inicialización automática y control de visibilidad
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(connectToAPI, 1000);
+            
+            // Pausar actualizaciones cuando la pestaña no está visible
+            document.addEventListener('visibilitychange', function() {
+                if (document.hidden) {
+                    console.log('Pestaña oculta - pausando actualizaciones');
+                    if (updateInterval) {
+                        clearInterval(updateInterval);
+                        updateInterval = null;
+                    }
+                } else {
+                    console.log('Pestaña visible - reanudando actualizaciones');
+                    if (isConnected && !updateInterval) {
+                        startRealTimeUpdates();
+                        // Actualización inmediata al regresar
+                        fetchRealTimeData().then(updateAllDisplays);
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+</html>
