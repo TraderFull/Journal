@@ -1131,9 +1131,12 @@
         function startRealTimeUpdates() {
             if (updateInterval) clearInterval(updateInterval);
             
+            // No iniciar si está pausado manualmente
+            if (isPaused) return;
+            
             updateInterval = setInterval(async () => {
-                // Solo actualizar si la ventana está activa
-                if (document.hidden) return;
+                // Solo actualizar si la ventana está activa y no está pausado
+                if (document.hidden || isPaused) return;
                 
                 try {
                     const data = await fetchRealTimeData();
@@ -1164,26 +1167,10 @@
                 alertDiv.remove();
             }, 5000);
         }
-      
-let isPaused = false;
-function toggleUpdates() {
-    isPaused = !isPaused;
-    const btn = document.getElementById('toggleBtn');
-    
-    if (isPaused) {
-        clearInterval(updateInterval);
-        btn.textContent = '▶️ Reanudar';
-    } else {
-        startRealTimeUpdates();
-        btn.textContent = '⏸️ Pausar';
-    }
-}
 
-
-      
-        // Inicialización automática y control de visibilidad
+        // Inicialización SIN auto-conexión
         document.addEventListener('DOMContentLoaded', function() {
-            setTimeout(connectToAPI, 1000);
+            // NO conectar automáticamente - requiere API Key del usuario
             
             // Pausar actualizaciones cuando la pestaña no está visible
             document.addEventListener('visibilitychange', function() {
