@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Trading Analysis - EUR/USD</title>
+    <title>Análisis Técnico EUR/USD - Real Time</title>
     <style>
         * {
             margin: 0;
@@ -38,7 +38,7 @@
 
         .main-grid {
             display: grid;
-            grid-template-columns: 1fr 300px;
+            grid-template-columns: 1fr 350px;
             gap: 25px;
             margin-bottom: 30px;
         }
@@ -53,6 +53,35 @@
             background: rgba(255, 255, 255, 0.03);
             border-radius: 12px;
             padding: 20px;
+        }
+
+        .api-config {
+            background: rgba(255, 215, 0, 0.1);
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+            border: 1px solid rgba(255, 215, 0, 0.3);
+        }
+
+        .api-input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 5px;
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+            margin-bottom: 10px;
+        }
+
+        .api-button {
+            background: linear-gradient(45deg, #ffd700, #ffed4e);
+            color: #000;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            width: 100%;
         }
 
         .timeframe-selector {
@@ -100,6 +129,27 @@
         .positive { color: #00ff88; }
         .negative { color: #ff6b6b; }
 
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #00d4ff;
+        }
+
+        .spinner {
+            border: 4px solid rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            border-top: 4px solid #00d4ff;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
         .setup-card {
             background: rgba(255, 255, 255, 0.05);
             border-radius: 10px;
@@ -140,15 +190,11 @@
         .support { border-left: 3px solid #00ff88; }
         .resistance { border-left: 3px solid #ff6b6b; }
 
-        .chart-placeholder {
+        .tradingview-widget {
             width: 100%;
-            height: 400px;
-            background: rgba(255, 255, 255, 0.05);
+            height: 500px;
             border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border: 2px dashed rgba(255, 255, 255, 0.2);
+            overflow: hidden;
             margin-bottom: 20px;
         }
 
@@ -158,74 +204,48 @@
             padding: 20px;
         }
 
-        .trend-indicator {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            padding: 12px;
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 8px;
-            margin-bottom: 10px;
-        }
-
-        .trend-arrow {
-            font-size: 1.5rem;
-        }
-
-        .file-upload {
-            background: rgba(255, 255, 255, 0.05);
-            border: 2px dashed rgba(255, 255, 255, 0.3);
-            border-radius: 10px;
-            padding: 20px;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.3s ease;
+        .indicator-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
             margin-bottom: 20px;
         }
 
-        .file-upload:hover {
-            border-color: #00d4ff;
-            background: rgba(0, 212, 255, 0.1);
-        }
-
-        .upload-btn {
-            background: linear-gradient(45deg, #00d4ff, #00ff88);
-            border: none;
-            padding: 12px 25px;
-            border-radius: 8px;
-            color: #000;
-            font-weight: bold;
-            cursor: pointer;
-            margin-top: 10px;
-        }
-
-        .chart-image {
-            max-width: 100%;
-            border-radius: 10px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-        }
-
-        .confidence-meter {
+        .indicator-card {
             background: rgba(255, 255, 255, 0.05);
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .indicator-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+
+        .bullish-indicator { color: #00ff88; }
+        .bearish-indicator { color: #ff6b6b; }
+        .neutral-indicator { color: #ffd700; }
+
+        .error-message {
+            background: rgba(255, 107, 107, 0.1);
+            border: 1px solid rgba(255, 107, 107, 0.3);
             border-radius: 10px;
             padding: 15px;
-            margin-bottom: 20px;
+            margin: 15px 0;
+            color: #ff6b6b;
+            text-align: center;
         }
 
-        .confidence-bar {
-            width: 100%;
-            height: 20px;
-            background: rgba(255, 255, 255, 0.1);
+        .success-message {
+            background: rgba(0, 255, 136, 0.1);
+            border: 1px solid rgba(0, 255, 136, 0.3);
             border-radius: 10px;
-            overflow: hidden;
-            margin-bottom: 10px;
-        }
-
-        .confidence-fill {
-            height: 100%;
-            background: linear-gradient(90deg, #ff6b6b 0%, #ffd700 50%, #00ff88 100%);
-            border-radius: 10px;
-            transition: width 0.5s ease;
+            padding: 15px;
+            margin: 15px 0;
+            color: #00ff88;
+            text-align: center;
         }
 
         @media (max-width: 768px) {
@@ -237,253 +257,518 @@
 </head>
 <body>
     <div class="container">
-        <h1>Análisis Técnico EUR/USD</h1>
+        <h1>Análisis Técnico EUR/USD - Datos Reales</h1>
+        
+        <div class="api-config">
+            <h4 style="margin-bottom: 10px; color: #ffd700;">Configuración API</h4>
+            <p style="font-size: 0.9rem; margin-bottom: 15px; opacity: 0.8;">
+                Necesitas una API key gratuita de Alpha Vantage o usar Finnhub
+            </p>
+            <select id="apiProvider" class="api-input">
+                <option value="alphavantage">Alpha Vantage (Recomendado)</option>
+                <option value="finnhub">Finnhub</option>
+                <option value="fxapi">Fixer.io</option>
+            </select>
+            <input type="password" id="apiKey" class="api-input" placeholder="Tu API Key">
+            <button class="api-button" onclick="initializeAPI()">Conectar API</button>
+            <div style="margin-top: 10px;">
+                <small style="opacity: 0.7;">
+                    <a href="https://www.alphavantage.co/support/#api-key" target="_blank" style="color: #00d4ff;">
+                        Obtener API Key gratuita
+                    </a>
+                </small>
+            </div>
+        </div>
         
         <div class="main-grid">
             <div class="chart-section">
                 <div class="timeframe-selector">
-                    <button class="tf-btn" onclick="selectTimeframe('1D')" id="tf-1D">1D</button>
-                    <button class="tf-btn active" onclick="selectTimeframe('4H')" id="tf-4H">4H</button>
-                    <button class="tf-btn" onclick="selectTimeframe('1H')" id="tf-1H">1H</button>
-                    <button class="tf-btn" onclick="selectTimeframe('15M')" id="tf-15M">15M</button>
+                    <button class="tf-btn" onclick="selectTimeframe('1min')" id="tf-1min">1M</button>
+                    <button class="tf-btn" onclick="selectTimeframe('5min')" id="tf-5min">5M</button>
+                    <button class="tf-btn" onclick="selectTimeframe('15min')" id="tf-15min">15M</button>
+                    <button class="tf-btn active" onclick="selectTimeframe('60min')" id="tf-60min">1H</button>
+                    <button class="tf-btn" onclick="selectTimeframe('daily')" id="tf-daily">1D</button>
                 </div>
 
-                <div class="file-upload" onclick="document.getElementById('fileInput').click()">
-                    <p>Subir gráfico para análisis</p>
-                    <button class="upload-btn">Seleccionar Archivo</button>
-                    <input type="file" id="fileInput" style="display: none;" accept="image/*">
-                </div>
-
-                <div class="chart-placeholder" id="chartContainer">
-                    <div style="text-align: center; opacity: 0.6;">
-                        <p>Sube un gráfico para comenzar el análisis</p>
-                        <p style="font-size: 0.9rem; margin-top: 10px;">Formatos soportados: PNG, JPG, GIF</p>
+                <!-- TradingView Widget -->
+                <div class="tradingview-widget" id="tradingview-widget">
+                    <div style="height: 100%; width: 100%; background: rgba(255,255,255,0.05); display: flex; align-items: center; justify-content: center; border-radius: 10px;">
+                        <div style="text-align: center;">
+                            <div class="spinner"></div>
+                            <p>Cargando gráfico TradingView...</p>
+                        </div>
                     </div>
                 </div>
             </div>
 
             <div class="sidebar">
                 <div class="price-display">
-                    <div class="current-price" id="currentPrice">1.1856</div>
-                    <div class="price-change positive" id="priceChange">+0.0023 (+0.19%)</div>
-                </div>
-
-                <div class="confidence-meter">
-                    <h4 style="margin-bottom: 10px; color: #ffd700;">Confianza del Análisis</h4>
-                    <div class="confidence-bar">
-                        <div class="confidence-fill" id="confidenceFill" style="width: 0%;"></div>
-                    </div>
-                    <div style="text-align: center;" id="confidenceText">0%</div>
+                    <div class="current-price" id="currentPrice">--</div>
+                    <div class="price-change" id="priceChange">Esperando datos...</div>
+                    <div style="margin-top: 10px; font-size: 0.9rem;" id="lastUpdate">--</div>
                 </div>
 
                 <div class="levels-section">
-                    <h4 style="margin-bottom: 15px; color: #00d4ff;">Niveles Clave</h4>
-                    <div id="keyLevels">
-                        <div class="level-item resistance">
-                            <span>Resistencia</span>
-                            <span>1.1890</span>
-                        </div>
-                        <div class="level-item support">
-                            <span>Soporte</span>
-                            <span>1.1820</span>
+                    <h4 style="margin-bottom: 15px; color: #00d4ff;">Niveles Técnicos</h4>
+                    <div id="technicalLevels">
+                        <div class="loading">
+                            <div class="spinner"></div>
+                            <p>Calculando niveles...</p>
                         </div>
                     </div>
                 </div>
 
                 <div id="setupsContainer">
-                    <h4 style="margin-bottom: 15px; color: #ffd700;">Setups Detectados</h4>
+                    <h4 style="margin-bottom: 15px; color: #ffd700;">Análisis Actual</h4>
                     <div class="setup-card setup-neutral">
-                        <div class="setup-title">Esperando análisis...</div>
-                        <div class="setup-details">Sube un gráfico para detectar oportunidades</div>
+                        <div class="setup-title">Sin datos</div>
+                        <div class="setup-details">Conecta una API para comenzar</div>
                     </div>
                 </div>
             </div>
         </div>
 
         <div class="analysis-section">
-            <h3 style="margin-bottom: 20px; color: #00ff88;">Análisis Multi-Temporalidad</h3>
-            <div id="trendAnalysis">
-                <div class="trend-indicator">
-                    <span class="trend-arrow">→</span>
-                    <span>Esperando datos para análisis de tendencia</span>
+            <h3 style="margin-bottom: 20px; color: #00ff88;">Indicadores Técnicos</h3>
+            <div class="indicator-grid" id="indicatorGrid">
+                <div class="indicator-card">
+                    <div>RSI (14)</div>
+                    <div class="indicator-value neutral-indicator" id="rsiValue">--</div>
+                </div>
+                <div class="indicator-card">
+                    <div>MACD</div>
+                    <div class="indicator-value neutral-indicator" id="macdValue">--</div>
+                </div>
+                <div class="indicator-card">
+                    <div>Moving Average</div>
+                    <div class="indicator-value neutral-indicator" id="maValue">--</div>
+                </div>
+                <div class="indicator-card">
+                    <div>Volumen</div>
+                    <div class="indicator-value neutral-indicator" id="volumeValue">--</div>
                 </div>
             </div>
         </div>
     </div>
 
-    <script>
-        let currentTimeframe = '4H';
-        let analysisData = {};
+    <!-- TradingView Script -->
+    <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js" async>
+    {
+        "width": "100%",
+        "height": "500",
+        "symbol": "FX:EURUSD",
+        "interval": "60",
+        "timezone": "Etc/UTC",
+        "theme": "dark",
+        "style": "1",
+        "locale": "es",
+        "toolbar_bg": "#f1f3f6",
+        "enable_publishing": false,
+        "hide_top_toolbar": false,
+        "hide_legend": false,
+        "save_image": false,
+        "container_id": "tradingview-widget"
+    }
+    </script>
 
-        document.getElementById('fileInput').addEventListener('change', function(e) {
-            const file = e.target.files[0];
-            if (file) {
-                analyzeChart(file);
+    <script>
+        let apiProvider = 'alphavantage';
+        let apiKey = '';
+        let currentTimeframe = '60min';
+        let priceData = {};
+        let isConnected = false;
+        let updateInterval;
+
+        function initializeAPI() {
+            apiProvider = document.getElementById('apiProvider').value;
+            apiKey = document.getElementById('apiKey').value.trim();
+            
+            if (!apiKey) {
+                showError('Por favor ingresa tu API Key');
+                return;
             }
-        });
+            
+            connectAPI();
+        }
+
+        async function connectAPI() {
+            try {
+                showLoading('Conectando a la API...');
+                
+                // Test connection
+                const testData = await fetchPriceData();
+                
+                if (testData) {
+                    isConnected = true;
+                    showSuccess('API conectada exitosamente');
+                    startRealTimeUpdates();
+                    updateDisplay(testData);
+                } else {
+                    throw new Error('No se pudieron obtener datos');
+                }
+                
+            } catch (error) {
+                showError(`Error de conexión: ${error.message}`);
+                console.error('API Error:', error);
+            }
+        }
+
+        async function fetchPriceData() {
+            switch(apiProvider) {
+                case 'alphavantage':
+                    return await fetchAlphaVantageData();
+                case 'finnhub':
+                    return await fetchFinnhubData();
+                case 'fxapi':
+                    return await fetchFxApiData();
+                default:
+                    throw new Error('Proveedor no soportado');
+            }
+        }
+
+        async function fetchAlphaVantageData() {
+            const interval = currentTimeframe;
+            const url = `https://www.alphavantage.co/query?function=FX_INTRADAY&from_symbol=EUR&to_symbol=USD&interval=${interval}&apikey=${apiKey}`;
+            
+            const response = await fetch(url);
+            const data = await response.json();
+            
+            if (data['Error Message']) {
+                throw new Error('API Key inválida o límite excedido');
+            }
+            
+            if (data['Note']) {
+                throw new Error('Límite de llamadas excedido. Espera 1 minuto.');
+            }
+            
+            const timeSeries = data[`Time Series FX (${interval})`];
+            if (!timeSeries) {
+                throw new Error('No se encontraron datos para el par EUR/USD');
+            }
+            
+            return processTimeSeriesData(timeSeries);
+        }
+
+        async function fetchFinnhubData() {
+            const url = `https://finnhub.io/api/v1/forex/rates?base=EUR&token=${apiKey}`;
+            
+            const response = await fetch(url);
+            const data = await response.json();
+            
+            if (!data.quote || !data.quote.USD) {
+                throw new Error('No se pudo obtener la cotización EUR/USD');
+            }
+            
+            return {
+                current: data.quote.USD,
+                change: 0,
+                changePercent: 0,
+                timestamp: new Date().toISOString(),
+                prices: [data.quote.USD]
+            };
+        }
+
+        async function fetchFxApiData() {
+            const url = `http://data.fixer.io/api/latest?access_key=${apiKey}&base=EUR&symbols=USD`;
+            
+            const response = await fetch(url);
+            const data = await response.json();
+            
+            if (!data.success) {
+                throw new Error(data.error?.info || 'Error en la API');
+            }
+            
+            return {
+                current: data.rates.USD,
+                change: 0,
+                changePercent: 0,
+                timestamp: data.date,
+                prices: [data.rates.USD]
+            };
+        }
+
+        function processTimeSeriesData(timeSeries) {
+            const entries = Object.entries(timeSeries);
+            const latest = entries[0];
+            const previous = entries[1];
+            
+            const currentPrice = parseFloat(latest[1]['4. close']);
+            const previousPrice = previous ? parseFloat(previous[1]['4. close']) : currentPrice;
+            
+            const change = currentPrice - previousPrice;
+            const changePercent = (change / previousPrice) * 100;
+            
+            const prices = entries.slice(0, 50).map(entry => 
+                parseFloat(entry[1]['4. close'])
+            ).reverse();
+            
+            return {
+                current: currentPrice,
+                change: change,
+                changePercent: changePercent,
+                timestamp: latest[0],
+                prices: prices,
+                volume: parseFloat(latest[1]['5. volume']) || 0,
+                high: parseFloat(latest[1]['2. high']),
+                low: parseFloat(latest[1]['3. low']),
+                open: parseFloat(latest[1]['1. open'])
+            };
+        }
+
+        function updateDisplay(data) {
+            // Update price display
+            document.getElementById('currentPrice').textContent = data.current.toFixed(4);
+            
+            const changeElement = document.getElementById('priceChange');
+            const sign = data.change >= 0 ? '+' : '';
+            changeElement.textContent = `${sign}${data.change.toFixed(4)} (${sign}${data.changePercent.toFixed(2)}%)`;
+            changeElement.className = `price-change ${data.change >= 0 ? 'positive' : 'negative'}`;
+            
+            document.getElementById('lastUpdate').textContent = `Actualizado: ${new Date().toLocaleTimeString()}`;
+            
+            // Calculate technical indicators
+            updateTechnicalIndicators(data);
+            
+            // Update levels
+            updateTechnicalLevels(data);
+            
+            // Update setups
+            updateTradingSetups(data);
+        }
+
+        function updateTechnicalIndicators(data) {
+            if (!data.prices || data.prices.length < 14) return;
+            
+            // Calculate RSI
+            const rsi = calculateRSI(data.prices, 14);
+            const rsiElement = document.getElementById('rsiValue');
+            rsiElement.textContent = rsi.toFixed(2);
+            
+            if (rsi > 70) {
+                rsiElement.className = 'indicator-value bearish-indicator';
+            } else if (rsi < 30) {
+                rsiElement.className = 'indicator-value bullish-indicator';
+            } else {
+                rsiElement.className = 'indicator-value neutral-indicator';
+            }
+            
+            // Simple Moving Average
+            const ma = calculateMA(data.prices, 20);
+            const maElement = document.getElementById('maValue');
+            maElement.textContent = ma.toFixed(4);
+            
+            if (data.current > ma) {
+                maElement.className = 'indicator-value bullish-indicator';
+            } else {
+                maElement.className = 'indicator-value bearish-indicator';
+            }
+            
+            // Volume (if available)
+            if (data.volume) {
+                document.getElementById('volumeValue').textContent = formatVolume(data.volume);
+            }
+            
+            // MACD (simplified)
+            const macd = calculateSimpleMACD(data.prices);
+            document.getElementById('macdValue').textContent = macd.toFixed(6);
+        }
+
+        function calculateRSI(prices, period) {
+            let gains = 0;
+            let losses = 0;
+            
+            for (let i = 1; i < period + 1; i++) {
+                const change = prices[i] - prices[i - 1];
+                if (change > 0) {
+                    gains += change;
+                } else {
+                    losses += Math.abs(change);
+                }
+            }
+            
+            const avgGain = gains / period;
+            const avgLoss = losses / period;
+            
+            const rs = avgGain / avgLoss;
+            return 100 - (100 / (1 + rs));
+        }
+
+        function calculateMA(prices, period) {
+            const sum = prices.slice(-period).reduce((a, b) => a + b, 0);
+            return sum / period;
+        }
+
+        function calculateSimpleMACD(prices) {
+            if (prices.length < 26) return 0;
+            
+            const ema12 = calculateEMA(prices, 12);
+            const ema26 = calculateEMA(prices, 26);
+            
+            return ema12 - ema26;
+        }
+
+        function calculateEMA(prices, period) {
+            const k = 2 / (period + 1);
+            let ema = prices[0];
+            
+            for (let i = 1; i < prices.length; i++) {
+                ema = (prices[i] * k) + (ema * (1 - k));
+            }
+            
+            return ema;
+        }
+
+        function updateTechnicalLevels(data) {
+            const prices = data.prices || [];
+            if (prices.length < 10) return;
+            
+            // Calculate support and resistance levels
+            const highs = [];
+            const lows = [];
+            
+            for (let i = 2; i < prices.length - 2; i++) {
+                if (prices[i] > prices[i-1] && prices[i] > prices[i+1] && 
+                    prices[i] > prices[i-2] && prices[i] > prices[i+2]) {
+                    highs.push(prices[i]);
+                }
+                if (prices[i] < prices[i-1] && prices[i] < prices[i+1] && 
+                    prices[i] < prices[i-2] && prices[i] < prices[i+2]) {
+                    lows.push(prices[i]);
+                }
+            }
+            
+            const resistance = highs.length > 0 ? Math.max(...highs) : data.high || data.current * 1.01;
+            const support = lows.length > 0 ? Math.min(...lows) : data.low || data.current * 0.99;
+            
+            document.getElementById('technicalLevels').innerHTML = `
+                <div class="level-item resistance">
+                    <span>Resistencia</span>
+                    <span>${resistance.toFixed(4)}</span>
+                </div>
+                <div class="level-item support">
+                    <span>Soporte</span>
+                    <span>${support.toFixed(4)}</span>
+                </div>
+            `;
+        }
+
+        function updateTradingSetups(data) {
+            const rsi = data.prices ? calculateRSI(data.prices, 14) : 50;
+            const ma = data.prices ? calculateMA(data.prices, 20) : data.current;
+            
+            let setupType = 'neutral';
+            let setupTitle = 'Sin señal clara';
+            let setupDetails = 'Esperando confirmación del mercado';
+            
+            // Generate trading signals based on indicators
+            if (rsi > 70 && data.current < ma) {
+                setupType = 'bearish';
+                setupTitle = 'Señal Bajista';
+                setupDetails = `RSI sobrecomprado (${rsi.toFixed(2)}) y precio bajo MA`;
+            } else if (rsi < 30 && data.current > ma) {
+                setupType = 'bullish';
+                setupTitle = 'Señal Alcista';
+                setupDetails = `RSI sobrevendido (${rsi.toFixed(2)}) y precio sobre MA`;
+            } else if (data.current > ma) {
+                setupType = 'bullish';
+                setupTitle = 'Tendencia Alcista';
+                setupDetails = `Precio sobre media móvil (${ma.toFixed(4)})`;
+            } else if (data.current < ma) {
+                setupType = 'bearish';
+                setupTitle = 'Tendencia Bajista';
+                setupDetails = `Precio bajo media móvil (${ma.toFixed(4)})`;
+            }
+            
+            document.getElementById('setupsContainer').innerHTML = `
+                <h4 style="margin-bottom: 15px; color: #ffd700;">Análisis Actual</h4>
+                <div class="setup-card setup-${setupType}">
+                    <div class="setup-title">${setupTitle}</div>
+                    <div class="setup-details">${setupDetails}</div>
+                </div>
+            `;
+        }
+
+        function formatVolume(volume) {
+            if (volume > 1000000) {
+                return (volume / 1000000).toFixed(1) + 'M';
+            } else if (volume > 1000) {
+                return (volume / 1000).toFixed(1) + 'K';
+            }
+            return volume.toString();
+        }
 
         function selectTimeframe(tf) {
             currentTimeframe = tf;
             document.querySelectorAll('.tf-btn').forEach(btn => btn.classList.remove('active'));
             document.getElementById(`tf-${tf}`).classList.add('active');
             
-            if (analysisData[tf]) {
-                updateDisplay(analysisData[tf]);
+            if (isConnected) {
+                fetchPriceData().then(data => {
+                    if (data) updateDisplay(data);
+                }).catch(console.error);
             }
         }
 
-        function analyzeChart(file) {
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                // Mostrar la imagen
-                document.getElementById('chartContainer').innerHTML = `
-                    <img src="${e.target.result}" alt="Chart" class="chart-image">
-                `;
-
-                // Simular análisis (aquí irían los algoritmos reales)
-                const analysis = performTechnicalAnalysis();
-                analysisData[currentTimeframe] = analysis;
-                updateDisplay(analysis);
-            };
-            reader.readAsDataURL(file);
-        }
-
-        function performTechnicalAnalysis() {
-            // Esta función debería contener algoritmos reales de análisis técnico
-            // Por ahora, genera datos de ejemplo más realistas
-            
-            const basePrice = 1.1856;
-            const volatility = 0.005;
-            
-            return {
-                trend: Math.random() > 0.5 ? 'bullish' : 'bearish',
-                confidence: Math.floor(Math.random() * 40) + 60, // 60-100%
-                keyLevels: {
-                    resistance: (basePrice + Math.random() * volatility).toFixed(4),
-                    support: (basePrice - Math.random() * volatility).toFixed(4)
-                },
-                setups: generateRealisticSetups(basePrice),
-                signals: generateTradingSignals()
-            };
-        }
-
-        function generateRealisticSetups(basePrice) {
-            const setups = [];
-            const numSetups = Math.floor(Math.random() * 3) + 1;
-
-            for (let i = 0; i < numSetups; i++) {
-                const isLong = Math.random() > 0.5;
-                const entry = basePrice + (Math.random() - 0.5) * 0.01;
-                
-                setups.push({
-                    type: isLong ? 'Long' : 'Short',
-                    entry: entry.toFixed(4),
-                    sl: isLong ? 
-                        (entry - Math.random() * 0.005).toFixed(4) : 
-                        (entry + Math.random() * 0.005).toFixed(4),
-                    tp: isLong ? 
-                        (entry + Math.random() * 0.01).toFixed(4) : 
-                        (entry - Math.random() * 0.01).toFixed(4),
-                    timeframe: currentTimeframe,
-                    reason: generateSetupReason(isLong)
-                });
+        function startRealTimeUpdates() {
+            // Clear existing interval
+            if (updateInterval) {
+                clearInterval(updateInterval);
             }
-
-            return setups;
-        }
-
-        function generateSetupReason(isLong) {
-            const longReasons = [
-                'Ruptura de resistencia',
-                'Rebote en soporte',
-                'Patrón de reversión alcista',
-                'Divergencia bullish en RSI'
-            ];
             
-            const shortReasons = [
-                'Ruptura de soporte',
-                'Rechazo en resistencia',
-                'Patrón de reversión bajista',
-                'Divergencia bearish en RSI'
-            ];
+            // Update every 30 seconds
+            updateInterval = setInterval(async () => {
+                if (isConnected) {
+                    try {
+                        const data = await fetchPriceData();
+                        if (data) updateDisplay(data);
+                    } catch (error) {
+                        console.error('Update error:', error);
+                    }
+                }
+            }, 30000);
+        }
+
+        function showError(message) {
+            const existingError = document.querySelector('.error-message');
+            if (existingError) existingError.remove();
             
-            const reasons = isLong ? longReasons : shortReasons;
-            return reasons[Math.floor(Math.random() * reasons.length)];
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'error-message';
+            errorDiv.textContent = message;
+            document.querySelector('.api-config').appendChild(errorDiv);
+            
+            setTimeout(() => errorDiv.remove(), 5000);
         }
 
-        function generateTradingSignals() {
-            const signals = ['RSI sobrecomprado', 'MACD divergente', 'Volumen aumentando'];
-            return signals.slice(0, Math.floor(Math.random() * signals.length) + 1);
+        function showSuccess(message) {
+            const existingSuccess = document.querySelector('.success-message');
+            if (existingSuccess) existingSuccess.remove();
+            
+            const successDiv = document.createElement('div');
+            successDiv.className = 'success-message';
+            successDiv.textContent = message;
+            document.querySelector('.api-config').appendChild(successDiv);
+            
+            setTimeout(() => successDiv.remove(), 3000);
         }
 
-        function updateDisplay(analysis) {
-            // Actualizar confianza
-            document.getElementById('confidenceFill').style.width = analysis.confidence + '%';
-            document.getElementById('confidenceText').textContent = analysis.confidence + '%';
-
-            // Actualizar niveles
-            document.getElementById('keyLevels').innerHTML = `
-                <div class="level-item resistance">
-                    <span>Resistencia</span>
-                    <span>${analysis.keyLevels.resistance}</span>
-                </div>
-                <div class="level-item support">
-                    <span>Soporte</span>
-                    <span>${analysis.keyLevels.support}</span>
-                </div>
+        function showLoading(message) {
+            const apiConfig = document.querySelector('.api-config');
+            const loadingDiv = document.createElement('div');
+            loadingDiv.className = 'loading';
+            loadingDiv.innerHTML = `
+                <div class="spinner"></div>
+                <p>${message}</p>
             `;
-
-            // Actualizar setups
-            const setupsHtml = analysis.setups.map(setup => `
-                <div class="setup-card setup-${setup.type.toLowerCase() === 'long' ? 'bullish' : 'bearish'}">
-                    <div class="setup-title">${setup.type} ${setup.timeframe}</div>
-                    <div class="setup-details">
-                        <p>Entrada: ${setup.entry}</p>
-                        <p>SL: ${setup.sl} | TP: ${setup.tp}</p>
-                        <p style="margin-top: 8px; font-size: 0.8rem;">${setup.reason}</p>
-                    </div>
-                </div>
-            `).join('');
-
-            document.getElementById('setupsContainer').innerHTML = `
-                <h4 style="margin-bottom: 15px; color: #ffd700;">Setups Detectados</h4>
-                ${setupsHtml}
-            `;
-
-            // Actualizar análisis de tendencia
-            const trendEmoji = analysis.trend === 'bullish' ? '↗️' : '↘️';
-            const trendText = analysis.trend === 'bullish' ? 'Tendencia Alcista' : 'Tendencia Bajista';
+            apiConfig.appendChild(loadingDiv);
             
-            document.getElementById('trendAnalysis').innerHTML = `
-                <div class="trend-indicator">
-                    <span class="trend-arrow">${trendEmoji}</span>
-                    <span>${trendText} (${analysis.confidence}% confianza)</span>
-                </div>
-                <div style="margin-top: 15px;">
-                    <h4 style="margin-bottom: 10px;">Señales Detectadas:</h4>
-                    ${analysis.signals.map(signal => `<p style="margin: 5px 0; opacity: 0.8;">• ${signal}</p>`).join('')}
-                </div>
-            `;
+            setTimeout(() => loadingDiv.remove(), 10000);
         }
 
-        // Actualizar precio cada 5 segundos (simulación)
-        setInterval(() => {
-            const currentPriceElement = document.getElementById('currentPrice');
-            const priceChangeElement = document.getElementById('priceChange');
-            
-            const basePrice = parseFloat(currentPriceElement.textContent);
-            const change = (Math.random() - 0.5) * 0.001;
-            const newPrice = basePrice + change;
-            
-            currentPriceElement.textContent = newPrice.toFixed(4);
-            
-            const changePercent = (change / basePrice * 100).toFixed(2);
-            const changeAbs = Math.abs(change).toFixed(4);
-            const sign = change >= 0 ? '+' : '-';
-            
-            priceChangeElement.textContent = `${sign}${changeAbs} (${sign}${Math.abs(changePercent)}%)`;
-            priceChangeElement.className = `price-change ${change >= 0 ? 'positive' : 'negative'}`;
-        }, 5000);
+        // Initialize TradingView widget when page loads
+        window.onload = function() {
+            // TradingView widget will load automatically via script tag
+        };
     </script>
 </body>
 </html>
