@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visualizador de Gráficos de Trading</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #1a1a1a;
+            color: white;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            background: rgba(30, 30, 30, 0.95);
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        h1 {
+            text-align: center;
+            color: #fff;
+            margin-bottom: 30px;
+            font-size: 2.5rem;
+            background: linear-gradient(135deg, #00d2ff, #3a7bd5);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .input-section {
+            margin-bottom: 30px;
+            background: #2a2a2a;
+            padding: 20px;
+            border-radius: 10px;
+        }
+
+        textarea {
+            width: 100%;
+            height: 150px;
+            padding: 15px;
+            border: 1px solid #404040;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            background: #1a1a1a;
+            color: #fff;
+            resize: vertical;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: #00d2ff;
+            box-shadow: 0 0 0 2px rgba(0, 210, 255, 0.2);
+        }
+
+        .controls {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+
+        .analyze-btn {
+            background: linear-gradient(135deg, #00d2ff, #3a7bd5);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 25px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .analyze-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0, 210, 255, 0.3);
+        }
+
+        .chart-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(800px, 1fr));
+            gap: 30px;
+            margin-top: 30px;
+        }
+
+        .chart-container {
+            background: #2a2a2a;
+            border-radius: 15px;
+            padding: 25px;
+            border: 1px solid #404040;
+            position: relative;
+        }
+
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #404040;
+        }
+
+        .symbol-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .symbol-name {
+            font-size: 24px;
+            font-weight: bold;
+            color: #fff;
+        }
+
+        .timeframe {
+            background: #404040;
+            padding: 6px 12px;
+            border-radius: 15px;
+            font-size: 12px;
+            color: #ccc;
+        }
+
+        .direction-badge {
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 14px;
+            text-transform: uppercase;
+        }
+
+        .direction-badge.buy {
+            background: linear-gradient(135deg, #00ff88, #00cc6a);
+            color: #000;
+        }
+
+        .direction-badge.sell {
+            background: linear-gradient(135deg, #ff4757, #c44569);
+            color: #fff;
+        }
+
+        .chart-canvas {
+            width: 100% !important;
+            height: 400px !important;
+            border-radius: 10px;
+        }
+
+        .signal-info {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+            padding-top: 15px;
+            border-top: 1px solid #404040;
+        }
+
+        .info-item {
+            background: #1a1a1a;
+            padding: 12px 15px;
+            border-radius: 8px;
+            border-left: 3px solid;
+        }
+
+        .info-item.entry { border-left-color: #3a7bd5; }
+        .info-item.sl { border-left-color: #ff4757; }
+        .info-item.tp { border-left-color: #00ff88; }
+        .info-item.conf { border-left-color: #ffa502; }
+
+        .info-label {
+            font-size: 12px;
+            color: #888;
+            margin-bottom: 4px;
+        }
+
+        .info-value {
+            font-size: 16px;
+            font-weight: bold;
+            color: #fff;
+        }
+
+        .strategy-tag {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: rgba(58, 123, 213, 0.2);
+            color: #3a7bd5;
+            padding: 6px 12px;
+            border-radius: 15px;
+            font-size: 12px;
+            border: 1px solid rgba(58, 123, 213, 0.3);
+        }
+
+        .no-results {
+            text-align: center;
+            color: #888;
+            font-size: 18px;
+            margin-top: 50px;
+            background: #2a2a2a;
+            padding: 40px;
+            border-radius: 10px;
+        }
+
+        @media (max-width: 1024px) {
+            .chart-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .controls {
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📈 Visualizador de Gráficos de Trading</h1>
+        
+        <div class="input-section">
+            <textarea id="dataInput" placeholder="Pega aquí los resultados de tu analizador..."></textarea>
+            
+            <div class="controls">
+                <button class="analyze-btn" onclick="analyzeAndVisualize()">
+                    🚀 Generar Gráficos
+                </button>
+            </div>
+        </div>
+
+        <div id="charts" class="chart-grid"></div>
+    </div>
+
+    <script>
+        // Simulated price data generator
+        function generateCandlestickData(symbol, currentPrice, bars = 50) {
+            const data = [];
+            let price = currentPrice * 0.95; // Start 5% below current price
+            
+            for (let i = 0; i < bars; i++) {
+                const open = price;
+                const volatility = currentPrice * 0.002; // 0.2% volatility
+                
+                const change = (Math.random() - 0.48) * volatility * 4; // Slight upward bias
+                const high = open + Math.abs(change) + Math.random() * volatility;
+                const low = open - Math.abs(change) - Math.random() * volatility;
+                const close = open + change;
+                
+                data.push({
+                    x: new Date(Date.now() - (bars - i) * 3600000), // Hourly bars
+                    o: parseFloat(open.toFixed(symbol.includes('USD') && !symbol.startsWith('USD') ? 5 : 2)),
+                    h: parseFloat(high.toFixed(symbol.includes('USD') && !symbol.startsWith('USD') ? 5 : 2)),
+                    l: parseFloat(low.toFixed(symbol.includes('USD') && !symbol.startsWith('USD') ? 5 : 2)),
+                    c: parseFloat(close.toFixed(symbol.includes('USD') && !symbol.startsWith('USD') ? 5 : 2))
+                });
+                
+                price = close;
+            }
+            
+            return data;
+        }
+
+        function createCandlestickChart(container, signal) {
+            const canvas = container.querySelector('.chart-canvas');
+            const ctx = canvas.getContext('2d');
+            
+            // Generate realistic price data leading to the entry point
+            const priceData = generateCandlestickData(signal.symbol, signal.entry, 30);
+            
+            // Add current entry point as the last candle
+            const lastCandle = priceData[priceData.length - 1];
+            const entryCandle = {
+                x: new Date(),
+                o: signal.entry * 0.999,
+                h: Math.max(signal.entry * 1.001, lastCandle.c * 1.002),
+                l: Math.min(signal.entry * 0.999, lastCandle.c * 0.998),
+                c: signal.entry
+            };
+            priceData.push(entryCandle);
+
+            new Chart(ctx, {
+                type: 'candlestick',
+                data: {
+                    datasets: [
+                        {
+                            label: signal.symbol,
+                            data: priceData,
+                            borderColor: '#666',
+                            backgroundColor: function(context) {
+                                const point = context.raw;
+                                return point.c >= point.o ? '#00ff88' : '#ff4757';
+                            },
+                            borderWidth: 1,
+                        },
+                        // Entry line
+                        {
+                            type: 'line',
+                            label: 'Entry',
+                            data: priceData.map(d => ({ x: d.x, y: signal.entry })),
+                            borderColor: '#3a7bd5',
+                            backgroundColor: 'transparent',
+                            borderWidth: 2,
+                            borderDash: [5, 5],
+                            pointRadius: 0,
+                            tension: 0
+                        },
+                        // Stop Loss line
+                        {
+                            type: 'line',
+                            label: 'Stop Loss',
+                            data: priceData.map(d => ({ x: d.x, y: signal.stopLoss })),
+                            borderColor: '#ff4757',
+                            backgroundColor: 'transparent',
+                            borderWidth: 2,
+                            borderDash: [10, 3],
+                            pointRadius: 0,
+                            tension: 0
+                        },
+                        // Take Profit line
+                        {
+                            type: 'line',
+                            label: 'Take Profit',
+                            data: priceData.map(d => ({ x: d.x, y: signal.takeProfit })),
+                            borderColor: '#00ff88',
+                            backgroundColor: 'transparent',
+                            borderWidth: 2,
+                            borderDash: [3, 3],
+                            pointRadius: 0,
+                            tension: 0
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: {
+                        intersect: false,
+                        mode: 'index'
+                    },
+                    scales: {
+                        x: {
+                            type: 'time',
+                            time: {
+                                unit: 'hour',
+                                displayFormats: {
+                                    hour: 'HH:mm'
+                                }
+                            },
+                            grid: {
+                                color: '#404040',
+                                drawBorder: false
+                            },
+                            ticks: {
+                                color: '#888',
+                                maxTicksLimit: 8
+                            }
+                        },
+                        y: {
+                            position: 'right',
+                            grid: {
+                                color: '#404040',
+                                drawBorder: false
+                            },
+                            ticks: {
+                                color: '#888',
+                                callback: function(value) {
+                                    return formatPrice(value);
+                                }
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'top',
+                            labels: {
+                                color: '#fff',
+                                usePointStyle: true,
+                                filter: function(legendItem, data) {
+                                    return legendItem.text !== signal.symbol;
+                                }
+                            }
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                            titleColor: '#fff',
+                            bodyColor: '#fff',
+                            borderColor: '#404040',
+                            borderWidth: 1,
+                            callbacks: {
+                                label: function(context) {
+                                    if (context.dataset.type === 'line') {
+                                        return `${context.dataset.label}: ${formatPrice(context.parsed.y)}`;
+                                    }
+                                    const point = context.raw;
+                                    return [
+                                        `Open: ${formatPrice(point.o)}`,
+                                        `High: ${formatPrice(point.h)}`,
+                                        `Low: ${formatPrice(point.l)}`,
+                                        `Close: ${formatPrice(point.c)}`
+                                    ];
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function createChartContainer(signal) {
+            const directionClass = signal.direction.toLowerCase();
+            const riskPoints = Math.abs(signal.entry - signal.stopLoss);
+            const rewardPoints = Math.abs(signal.takeProfit - signal.entry);
+            const riskRewardRatio = riskPoints > 0 ? (rewardPoints / riskPoints).toFixed(2) : 'N/A';
+
+            return `
+                <div class="chart-container">
+                    <div class="strategy-tag">${signal.strategy}</div>
+                    
+                    <div class="chart-header">
+                        <div class="symbol-info">
+                            <span class="symbol-name">${signal.symbol}</span>
+                            <span class="timeframe">${signal.timeframe}</span>
+                        </div>
+                        <div class="direction-badge ${directionClass}">
+                            ${signal.direction === 'BUY' ? '📈 LONG' : '📉 SHORT'}
+                        </div>
+                    </div>
+
+                    <canvas class="chart-canvas"></canvas>
+
+                    <div class="signal-info">
+                        <div class="info-item entry">
+                            <div class="info-label">🎯 Entry Price</div>
+                            <div class="info-value">${formatPrice(signal.entry)}</div>
+                        </div>
+                        <div class="info-item sl">
+                            <div class="info-label">🛑 Stop Loss</div>
+                            <div class="info-value">${formatPrice(signal.stopLoss)}</div>
+                        </div>
+                        <div class="info-item tp">
+                            <div class="info-label">🎁 Take Profit</div>
+                            <div class="info-value">${formatPrice(signal.takeProfit)}</div>
+                        </div>
+                        <div class="info-item conf">
+                            <div class="info-label">📊 Confidence | R:R</div>
+                            <div class="info-value">${signal.confidence}% | 1:${riskRewardRatio}</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function analyzeAndVisualize() {
+            const input = document.getElementById('dataInput').value;
+            const chartsContainer = document.getElementById('charts');
+            
+            if (!input.trim()) {
+                chartsContainer.innerHTML = '<div class="no-results">📥 Por favor, pega los datos de tu analizador para generar los gráficos</div>';
+                return;
+            }
+
+            const signals = parseSignals(input);
+            
+            if (signals.length === 0) {
+                chartsContainer.innerHTML = '<div class="no-results">❌ No se encontraron señales válidas. Verifica el formato de los datos.</div>';
+                return;
+            }
+
+            // Create chart containers
+            chartsContainer.innerHTML = signals.map(signal => createChartContainer(signal)).join('');
+
+            // Create charts after DOM is updated
+            setTimeout(() => {
+                const containers = document.querySelectorAll('.chart-container');
+                containers.forEach((container, index) => {
+                    createCandlestickChart(container, signals[index]);
+                });
+            }, 100);
+        }
+
+        function parseSignals(text) {
+            const signals = [];
+            const lines = text.split('\n');
+            
+            for (const line of lines) {
+                const match = line.match(/(\w+)\s*\|\s*([^|]+)\s*\|\s*([^|]+)\s*\|\s*(BUY|SELL)\s*\|\s*Conf:(\d+\.?\d*)%\s*\|\s*Entry:(\d+\.?\d*)\s*\|\s*SL:(\d+\.?\d*)\s*\|\s*TP:(\d+\.?\d*)/i);
+                
+                if (match) {
+                    signals.push({
+                        symbol: match[1].trim(),
+                        timeframe: match[2].trim(),
+                        strategy: match[3].trim(),
+                        direction: match[4].trim().toUpperCase(),
+                        confidence: parseFloat(match[5]),
+                        entry: parseFloat(match[6]),
+                        stopLoss: parseFloat(match[7]),
+                        takeProfit: parseFloat(match[8])
+                    });
+                }
+            }
+            
+            return signals;
+        }
+
+        function formatPrice(price) {
+            if (price >= 1000) {
+                return price.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 5 });
+            } else {
+                return price.toFixed(5);
+            }
+        }
+
+        // Register candlestick chart type
+        Chart.register({
+            id: 'candlestick',
+            beforeDraw: function(chart) {
+                const ctx = chart.ctx;
+                const dataset = chart.data.datasets[0];
+                const meta = chart.getDatasetMeta(0);
+                
+                if (!meta.data || dataset.type !== 'candlestick') return;
+                
+                meta.data.forEach((element, index) => {
+                    const point = dataset.data[index];
+                    const x = element.x;
+                    const yOpen = chart.scales.y.getPixelForValue(point.o);
+                    const yClose = chart.scales.y.getPixelForValue(point.c);
+                    const yHigh = chart.scales.y.getPixelForValue(point.h);
+                    const yLow = chart.scales.y.getPixelForValue(point.l);
+                    
+                    const isGreen = point.c >= point.o;
+                    const color = isGreen ? '#00ff88' : '#ff4757';
+                    const bodyWidth = 8;
+                    
+                    ctx.strokeStyle = color;
+                    ctx.fillStyle = color;
+                    ctx.lineWidth = 1;
+                    
+                    // Draw the wick
+                    ctx.beginPath();
+                    ctx.moveTo(x, yHigh);
+                    ctx.lineTo(x, yLow);
+                    ctx.stroke();
+                    
+                    // Draw the body
+                    if (isGreen) {
+                        ctx.fillRect(x - bodyWidth/2, yClose, bodyWidth, yOpen - yClose);
+                    } else {
+                        ctx.fillRect(x - bodyWidth/2, yOpen, bodyWidth, yClose - yOpen);
+                    }
+                });
+            }
+        });
+
+        // Load sample data
+        window.onload = function() {
+            const sampleData = `=== RESUMEN GLOBAL ORDENADO ===
+✨ CALIDAD MEDIA (5 setups):
+  1. USDCAD  | Horario    | MACD Bearish Cross     | SELL | Conf:65.0% | Entry:1.38402 | SL:1.38676 | TP:1.37990 | Src:real
+  2. XAUUSD  | Diario 1M  | RSI Overbought Flexible | SELL | Conf:64.6% | Entry:2784.50000 | SL:2847.85651 | TP:2700.02465 | Src:real
+  3. XAUUSD  | 30min      | RSI Oversold Flexible  | BUY  | Conf:64.2% | Entry:2784.50000 | SL:2773.21773 | TP:2803.30378 | Src:real
+  4. EURUSD  | 30min      | RSI Oversold Flexible  | BUY  | Conf:61.9% | Entry:1.08036 | SL:1.07944 | TP:1.08188 | Src:real
+  5. AUDUSD  | 30min      | RSI Overbought Flexible | SELL | Conf:58.4% | Entry:0.66221 | SL:0.66302 | TP:0.66113 | Src:real`;
+            
+            document.getElementById('dataInput').value = sampleData;
+        };
+    </script>
+</body>
+</html>
