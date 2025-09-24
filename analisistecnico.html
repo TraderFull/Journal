@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trading Analysis - EUR/USD</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            min-height: 100vh;
+            color: #fff;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 25px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2.5rem;
+            color: #00d4ff;
+        }
+
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr 300px;
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+
+        .chart-section {
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 12px;
+            padding: 20px;
+        }
+
+        .sidebar {
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 12px;
+            padding: 20px;
+        }
+
+        .timeframe-selector {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .tf-btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 8px 15px;
+            border-radius: 8px;
+            color: #fff;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+        }
+
+        .tf-btn:hover, .tf-btn.active {
+            background: linear-gradient(45deg, #00d4ff, #00ff88);
+            color: #000;
+        }
+
+        .price-display {
+            background: rgba(0, 212, 255, 0.1);
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .current-price {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #00d4ff;
+        }
+
+        .price-change {
+            font-size: 1.2rem;
+            margin-top: 5px;
+        }
+
+        .positive { color: #00ff88; }
+        .negative { color: #ff6b6b; }
+
+        .setup-card {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-left: 4px solid;
+        }
+
+        .setup-bullish { border-left-color: #00ff88; }
+        .setup-bearish { border-left-color: #ff6b6b; }
+        .setup-neutral { border-left-color: #ffd700; }
+
+        .setup-title {
+            font-weight: bold;
+            margin-bottom: 8px;
+            color: #ffd700;
+        }
+
+        .setup-details {
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+
+        .levels-section {
+            margin-bottom: 25px;
+        }
+
+        .level-item {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .support { border-left: 3px solid #00ff88; }
+        .resistance { border-left: 3px solid #ff6b6b; }
+
+        .chart-placeholder {
+            width: 100%;
+            height: 400px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px dashed rgba(255, 255, 255, 0.2);
+            margin-bottom: 20px;
+        }
+
+        .analysis-section {
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 12px;
+            padding: 20px;
+        }
+
+        .trend-indicator {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            margin-bottom: 10px;
+        }
+
+        .trend-arrow {
+            font-size: 1.5rem;
+        }
+
+        .file-upload {
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px dashed rgba(255, 255, 255, 0.3);
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 20px;
+        }
+
+        .file-upload:hover {
+            border-color: #00d4ff;
+            background: rgba(0, 212, 255, 0.1);
+        }
+
+        .upload-btn {
+            background: linear-gradient(45deg, #00d4ff, #00ff88);
+            border: none;
+            padding: 12px 25px;
+            border-radius: 8px;
+            color: #000;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        .chart-image {
+            max-width: 100%;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .confidence-meter {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+
+        .confidence-bar {
+            width: 100%;
+            height: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            overflow: hidden;
+            margin-bottom: 10px;
+        }
+
+        .confidence-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #ff6b6b 0%, #ffd700 50%, #00ff88 100%);
+            border-radius: 10px;
+            transition: width 0.5s ease;
+        }
+
+        @media (max-width: 768px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Análisis Técnico EUR/USD</h1>
+        
+        <div class="main-grid">
+            <div class="chart-section">
+                <div class="timeframe-selector">
+                    <button class="tf-btn" onclick="selectTimeframe('1D')" id="tf-1D">1D</button>
+                    <button class="tf-btn active" onclick="selectTimeframe('4H')" id="tf-4H">4H</button>
+                    <button class="tf-btn" onclick="selectTimeframe('1H')" id="tf-1H">1H</button>
+                    <button class="tf-btn" onclick="selectTimeframe('15M')" id="tf-15M">15M</button>
+                </div>
+
+                <div class="file-upload" onclick="document.getElementById('fileInput').click()">
+                    <p>Subir gráfico para análisis</p>
+                    <button class="upload-btn">Seleccionar Archivo</button>
+                    <input type="file" id="fileInput" style="display: none;" accept="image/*">
+                </div>
+
+                <div class="chart-placeholder" id="chartContainer">
+                    <div style="text-align: center; opacity: 0.6;">
+                        <p>Sube un gráfico para comenzar el análisis</p>
+                        <p style="font-size: 0.9rem; margin-top: 10px;">Formatos soportados: PNG, JPG, GIF</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="sidebar">
+                <div class="price-display">
+                    <div class="current-price" id="currentPrice">1.1856</div>
+                    <div class="price-change positive" id="priceChange">+0.0023 (+0.19%)</div>
+                </div>
+
+                <div class="confidence-meter">
+                    <h4 style="margin-bottom: 10px; color: #ffd700;">Confianza del Análisis</h4>
+                    <div class="confidence-bar">
+                        <div class="confidence-fill" id="confidenceFill" style="width: 0%;"></div>
+                    </div>
+                    <div style="text-align: center;" id="confidenceText">0%</div>
+                </div>
+
+                <div class="levels-section">
+                    <h4 style="margin-bottom: 15px; color: #00d4ff;">Niveles Clave</h4>
+                    <div id="keyLevels">
+                        <div class="level-item resistance">
+                            <span>Resistencia</span>
+                            <span>1.1890</span>
+                        </div>
+                        <div class="level-item support">
+                            <span>Soporte</span>
+                            <span>1.1820</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="setupsContainer">
+                    <h4 style="margin-bottom: 15px; color: #ffd700;">Setups Detectados</h4>
+                    <div class="setup-card setup-neutral">
+                        <div class="setup-title">Esperando análisis...</div>
+                        <div class="setup-details">Sube un gráfico para detectar oportunidades</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="analysis-section">
+            <h3 style="margin-bottom: 20px; color: #00ff88;">Análisis Multi-Temporalidad</h3>
+            <div id="trendAnalysis">
+                <div class="trend-indicator">
+                    <span class="trend-arrow">→</span>
+                    <span>Esperando datos para análisis de tendencia</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentTimeframe = '4H';
+        let analysisData = {};
+
+        document.getElementById('fileInput').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                analyzeChart(file);
+            }
+        });
+
+        function selectTimeframe(tf) {
+            currentTimeframe = tf;
+            document.querySelectorAll('.tf-btn').forEach(btn => btn.classList.remove('active'));
+            document.getElementById(`tf-${tf}`).classList.add('active');
+            
+            if (analysisData[tf]) {
+                updateDisplay(analysisData[tf]);
+            }
+        }
+
+        function analyzeChart(file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                // Mostrar la imagen
+                document.getElementById('chartContainer').innerHTML = `
+                    <img src="${e.target.result}" alt="Chart" class="chart-image">
+                `;
+
+                // Simular análisis (aquí irían los algoritmos reales)
+                const analysis = performTechnicalAnalysis();
+                analysisData[currentTimeframe] = analysis;
+                updateDisplay(analysis);
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function performTechnicalAnalysis() {
+            // Esta función debería contener algoritmos reales de análisis técnico
+            // Por ahora, genera datos de ejemplo más realistas
+            
+            const basePrice = 1.1856;
+            const volatility = 0.005;
+            
+            return {
+                trend: Math.random() > 0.5 ? 'bullish' : 'bearish',
+                confidence: Math.floor(Math.random() * 40) + 60, // 60-100%
+                keyLevels: {
+                    resistance: (basePrice + Math.random() * volatility).toFixed(4),
+                    support: (basePrice - Math.random() * volatility).toFixed(4)
+                },
+                setups: generateRealisticSetups(basePrice),
+                signals: generateTradingSignals()
+            };
+        }
+
+        function generateRealisticSetups(basePrice) {
+            const setups = [];
+            const numSetups = Math.floor(Math.random() * 3) + 1;
+
+            for (let i = 0; i < numSetups; i++) {
+                const isLong = Math.random() > 0.5;
+                const entry = basePrice + (Math.random() - 0.5) * 0.01;
+                
+                setups.push({
+                    type: isLong ? 'Long' : 'Short',
+                    entry: entry.toFixed(4),
+                    sl: isLong ? 
+                        (entry - Math.random() * 0.005).toFixed(4) : 
+                        (entry + Math.random() * 0.005).toFixed(4),
+                    tp: isLong ? 
+                        (entry + Math.random() * 0.01).toFixed(4) : 
+                        (entry - Math.random() * 0.01).toFixed(4),
+                    timeframe: currentTimeframe,
+                    reason: generateSetupReason(isLong)
+                });
+            }
+
+            return setups;
+        }
+
+        function generateSetupReason(isLong) {
+            const longReasons = [
+                'Ruptura de resistencia',
+                'Rebote en soporte',
+                'Patrón de reversión alcista',
+                'Divergencia bullish en RSI'
+            ];
+            
+            const shortReasons = [
+                'Ruptura de soporte',
+                'Rechazo en resistencia',
+                'Patrón de reversión bajista',
+                'Divergencia bearish en RSI'
+            ];
+            
+            const reasons = isLong ? longReasons : shortReasons;
+            return reasons[Math.floor(Math.random() * reasons.length)];
+        }
+
+        function generateTradingSignals() {
+            const signals = ['RSI sobrecomprado', 'MACD divergente', 'Volumen aumentando'];
+            return signals.slice(0, Math.floor(Math.random() * signals.length) + 1);
+        }
+
+        function updateDisplay(analysis) {
+            // Actualizar confianza
+            document.getElementById('confidenceFill').style.width = analysis.confidence + '%';
+            document.getElementById('confidenceText').textContent = analysis.confidence + '%';
+
+            // Actualizar niveles
+            document.getElementById('keyLevels').innerHTML = `
+                <div class="level-item resistance">
+                    <span>Resistencia</span>
+                    <span>${analysis.keyLevels.resistance}</span>
+                </div>
+                <div class="level-item support">
+                    <span>Soporte</span>
+                    <span>${analysis.keyLevels.support}</span>
+                </div>
+            `;
+
+            // Actualizar setups
+            const setupsHtml = analysis.setups.map(setup => `
+                <div class="setup-card setup-${setup.type.toLowerCase() === 'long' ? 'bullish' : 'bearish'}">
+                    <div class="setup-title">${setup.type} ${setup.timeframe}</div>
+                    <div class="setup-details">
+                        <p>Entrada: ${setup.entry}</p>
+                        <p>SL: ${setup.sl} | TP: ${setup.tp}</p>
+                        <p style="margin-top: 8px; font-size: 0.8rem;">${setup.reason}</p>
+                    </div>
+                </div>
+            `).join('');
+
+            document.getElementById('setupsContainer').innerHTML = `
+                <h4 style="margin-bottom: 15px; color: #ffd700;">Setups Detectados</h4>
+                ${setupsHtml}
+            `;
+
+            // Actualizar análisis de tendencia
+            const trendEmoji = analysis.trend === 'bullish' ? '↗️' : '↘️';
+            const trendText = analysis.trend === 'bullish' ? 'Tendencia Alcista' : 'Tendencia Bajista';
+            
+            document.getElementById('trendAnalysis').innerHTML = `
+                <div class="trend-indicator">
+                    <span class="trend-arrow">${trendEmoji}</span>
+                    <span>${trendText} (${analysis.confidence}% confianza)</span>
+                </div>
+                <div style="margin-top: 15px;">
+                    <h4 style="margin-bottom: 10px;">Señales Detectadas:</h4>
+                    ${analysis.signals.map(signal => `<p style="margin: 5px 0; opacity: 0.8;">• ${signal}</p>`).join('')}
+                </div>
+            `;
+        }
+
+        // Actualizar precio cada 5 segundos (simulación)
+        setInterval(() => {
+            const currentPriceElement = document.getElementById('currentPrice');
+            const priceChangeElement = document.getElementById('priceChange');
+            
+            const basePrice = parseFloat(currentPriceElement.textContent);
+            const change = (Math.random() - 0.5) * 0.001;
+            const newPrice = basePrice + change;
+            
+            currentPriceElement.textContent = newPrice.toFixed(4);
+            
+            const changePercent = (change / basePrice * 100).toFixed(2);
+            const changeAbs = Math.abs(change).toFixed(4);
+            const sign = change >= 0 ? '+' : '-';
+            
+            priceChangeElement.textContent = `${sign}${changeAbs} (${sign}${Math.abs(changePercent)}%)`;
+            priceChangeElement.className = `price-change ${change >= 0 ? 'positive' : 'negative'}`;
+        }, 5000);
+    </script>
+</body>
+</html>
